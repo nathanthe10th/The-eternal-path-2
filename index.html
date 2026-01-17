@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Eternal Path</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --panel-bg: #0d0d0d;
+            --accent-green: #24ff7a;
+            --border-color: #3a3a3a;
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --bloodline-gold: #ffd700;
+            --root-blue: #00d4ff;
+            --aff-purple: #a333ff;
+            --danger-red: #ff4444;
+            --sect-cyan: #00f2ff;
+            --manual-orange: #ff8c00;
+            --rp-silver: #e0e0e0;
+            --admin-gold: #ffcc00;
+            --shake-intensity: 0px; 
+            --burst-color: #ffffff;
+        }
+
+        body.light-mode {
+            --bg-dark: #f0f2f5;
+            --panel-bg: #ffffff;
+            --text-main: #1a1a1a;
+            --text-dim: #4a4a4a;
+            --border-color: #cccccc;
+            --accent-green: #008f39;
+            --manual-orange: #d35400;
+        }
+
+        body.light-mode .btn-upgrade {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+            border: 1px solid #000;
+        }
+
+        body.light-mode .silhouette {
+            outline: 2px solid #000;
+            outline-offset: 1px;
+        }
+
+        body.light-mode #admin-panel {
+            background: #e9ecef !important;
+            border-left: 3px solid #b8860b !important;
+            color: #1a1a1a !important;
+        }
+
+        body.light-mode .admin-select, body.light-mode .admin-input {
+            background: #fff;
+            color: #000;
+            border: 1px solid #999;
+        }
+
+        body.light-mode .roll-card {
+            background: rgba(0,0,0,0.05);
+        }
+
+        body.light-mode .val { color: #000; }
+
+        .hide-visuals .evo-part, .hide-visuals .evo-effect {
+            display: none !important;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            transition: box-shadow 0.5s ease, background 0.1s ease;
+        }
+
+        /* --- NEW TIERED ANIMATIONS --- */
+        @keyframes lightBurst {
+            0% { box-shadow: 0 0 5px var(--burst-color); opacity: 0.3; }
+            50% { box-shadow: 0 0 35px var(--burst-color); opacity: 0.9; }
+            100% { box-shadow: 0 0 5px var(--burst-color); opacity: 0.3; }
+        }
+
+        @keyframes lightningStrikes {
+            0%, 90%, 100% { filter: drop-shadow(0 0 0px #fff); opacity: 0; }
+            92% { filter: drop-shadow(0 0 15px #00f2ff); opacity: 1; }
+            95% { opacity: 0; }
+            97% { filter: drop-shadow(0 0 20px #fff); opacity: 1; }
+        }
+
+        @keyframes flameFlicker {
+            0%, 100% { filter: drop-shadow(0 0 5px #ff4444) brightness(1); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 20px #ff8c00) brightness(1.3); transform: scale(1); } /* Scale removed */
+        }
+
+        @keyframes voidSwirl {
+            0% { transform: rotate(0deg) scale(1); opacity: 0.4; }
+            50% { transform: rotate(180deg) scale(1.3); opacity: 0.7; }
+            100% { transform: rotate(360deg) scale(1); opacity: 0.4; }
+        }
+
+        @keyframes orbitDots {
+            0% { transform: rotate(0deg) translateX(70px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(70px) rotate(-360deg); }
+        }
+
+        @keyframes cosmicPulse {
+            0% { transform: scale(1); filter: hue-rotate(0deg) brightness(1); }
+            50% { transform: scale(1); filter: hue-rotate(180deg) brightness(1.5); } /* Scale removed */
+            100% { transform: scale(1); filter: hue-rotate(360deg) brightness(1); }
+        }
+
+        .evo-effect { position: absolute; pointer-events: none; display: none; }
+
+        .burst-effect {
+            width: 80px; height: 110px; border-radius: 50%;
+            animation: lightBurst 2s infinite ease-in-out; z-index: 4;
+        }
+
+        .lightning-bolt {
+            width: 150px; height: 300px;
+            background: linear-gradient(0deg, transparent, #fff, transparent);
+            clip-path: polygon(45% 0%, 55% 0%, 40% 45%, 60% 45%, 35% 100%, 45% 100%, 70% 35%, 50% 35%);
+            animation: lightningStrikes 2s infinite; z-index: 6;
+        }
+
+        .fire-aura {
+            width: 120px; height: 150px;
+            background: radial-gradient(circle, rgba(255,68,68,0.4) 0%, transparent 75%);
+            z-index: 3;
+        }
+
+        .void-disk {
+            width: 180px; height: 180px;
+            border: 2px dashed var(--aff-purple); border-radius: 50%;
+            animation: voidSwirl 8s linear infinite; z-index: 2;
+        }
+
+        .divine-particle {
+            width: 10px; height: 10px; background: var(--admin-gold);
+            border-radius: 50%; box-shadow: 0 0 12px var(--admin-gold);
+            animation: orbitDots 3s linear infinite; z-index: 7;
+        }
+
+        /* --- GLASS CRACK & HEAVY VERTICAL SHUTTER --- */
+        .glass-shatter-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255, 255, 255, 0); backdrop-filter: blur(0px);
+            pointer-events: none; z-index: 2000; opacity: 0;
+            transition: backdrop-filter 0.5s, opacity 0.5s; overflow: hidden;
+        }
+
+        .shatter-active .glass-shatter-overlay {
+            opacity: 1; backdrop-filter: blur(4px);
+            animation: screenShake 0.1s infinite;
+        }
+
+        .reveal-active .glass-shatter-overlay { backdrop-filter: blur(0px) !important; }
+
+        .shatter-active {
+            box-shadow: inset 0 0 100px var(--admin-gold), inset 0 0 200px rgba(255, 204, 0, 0.4);
+        }
+
+        .crack {
+            position: absolute; background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 10px #fff, 0 0 20px var(--admin-gold);
+            z-index: 2001; transform-origin: top center;
+        }
+
+        .final-crack-container {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 2005; display: flex; pointer-events: none;
+        }
+
+        .crack-half {
+            position: relative; width: 50vw; min-width: 50vw; height: 100vh;
+            background: #000; transform: translateX(0);
+            transition: transform 3.5s cubic-bezier(0.4, 0, 0.2, 1); display: flex;
+        }
+
+        .crack-half::after {
+            content: ''; position: absolute; width: 20px; height: 100%;
+            background: var(--admin-gold); box-shadow: 0 0 40px var(--admin-gold), 0 0 80px #fff, 0 0 120px var(--admin-gold);
+            z-index: 2010;
+        }
+
+        .shutter-left { justify-content: flex-end; }
+        .shutter-left::after { right: -10px; }
+        .shutter-right { justify-content: flex-start; }
+        .shutter-right::after { left: -10px; }
+
+        .reveal-left { transform: translate3d(-100%, 0, 0) !important; }
+        .reveal-right { transform: translate3d(100%, 0, 0) !important; }
+
+        .no-shake { animation: none !important; transform: none !important; }
+
+        @keyframes screenShake {
+            0% { transform: translate(calc(-1 * var(--shake-intensity)), var(--shake-intensity)) rotate(calc(var(--shake-intensity) * -0.05deg)); }
+            50% { transform: translate(var(--shake-intensity), calc(-1 * var(--shake-intensity))) rotate(calc(var(--shake-intensity) * 0.05deg)); }
+            100% { transform: translate(calc(-1 * var(--shake-intensity)), calc(-1 * var(--shake-intensity))) rotate(0deg); }
+        }
+
+        @keyframes glassPulse {
+            0% { background: transparent; }
+            50% { background: rgba(255, 204, 0, 0.2); }
+            100% { background: transparent; }
+        }
+
+        .crack-flash { animation: glassPulse 0.1s 1; }
+
+        @keyframes finalFlash {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(3); }
+            100% { filter: brightness(1); }
+        }
+
+        .breakthrough-flash { animation: finalFlash 0.5s ease-out; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--panel-bg); border: 2px solid var(--border-color);
+            padding: 30px; width: 350px; text-align: center; box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-title { font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
+        .modal-text { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 25px; line-height: 1.5; }
+
+        .modal-btns { display: flex; gap: 10px; }
+        .modal-btn {
+            flex: 1; padding: 12px; cursor: pointer; font-family: inherit; font-weight: bold;
+            text-transform: uppercase; font-size: 0.75rem; background: #151515;
+            border: 1px solid var(--border-color); color: var(--text-main); transition: 0.2s;
+        }
+
+        .modal-btn.confirm-red { border-color: var(--danger-red); color: var(--danger-red); }
+        .modal-btn.confirm-red:hover { background: var(--danger-red); color: #000; box-shadow: 0 0 15px var(--danger-red); }
+        .modal-btn.cancel:hover { background: #333; }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            50% { transform: translate(-1px, 2px) rotate(1deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            100% { transform: translate(1px, -2px) rotate(0deg); }
+        }
+
+        .universe-collapse { animation: shake 0.2s infinite; filter: invert(1) brightness(2); pointer-events: none; }
+
+        #sidebar { width: 320px; background: var(--panel-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        #admin-panel {
+            width: 280px; background: #0a0a0a; border-left: 2px solid var(--admin-gold);
+            display: none; flex-direction: column; padding: 15px; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+        }
+
+        .admin-title {
+            color: var(--admin-gold); font-size: 0.8rem; text-transform: uppercase;
+            letter-spacing: 2px; margin-bottom: 15px; border-bottom: 1px solid var(--admin-gold); padding-bottom: 5px;
+        }
+
+        .admin-input-group { margin-bottom: 15px; }
+        .admin-label { font-size: 0.65rem; color: var(--text-dim); display: block; margin-bottom: 4px; }
+        .admin-select, .admin-input { width: 100%; background: #151515; border: 1px solid #333; color: #fff; font-size: 0.75rem; padding: 5px; outline: none; }
+        .admin-btn { background: #222; border: 1px solid var(--admin-gold); color: var(--admin-gold); width: 100%; padding: 5px; font-size: 0.7rem; cursor: pointer; margin-top: 5px; }
+        .admin-btn:hover { background: var(--admin-gold); color: #000; }
+
+        .tab-nav { display: flex; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02); }
+        .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; transition: 0.3s; }
+        .tab-btn.active { color: var(--accent-green); background: rgba(36, 255, 122, 0.05); border-bottom: 2px solid var(--accent-green); }
+
+        .tab-content { display: none; flex-direction: column; padding: 20px; gap: 8px; overflow-y: auto; flex-grow: 1; }
+        .tab-content.active { display: flex; }
+
+        .sidebar-header { font-size: 0.7rem; letter-spacing: 2px; color: var(--text-dim); margin-top: 10px; text-transform: uppercase;}
+        .roll-card { border: 1px solid var(--border-color); padding: 10px; text-align: center; background: rgba(255, 255, 255, 0.02); border-radius: 4px; transition: 0.3s; margin-bottom: 5px; }
+        .stat-line { display: flex; justify-content: space-between; font-size: 0.75rem; margin-top: 4px; }
+        .val { color: white; font-weight: bold; }
+        .bloodline-name { color: var(--bloodline-gold); font-weight: bold; }
+        .root-name { color: var(--root-blue); font-weight: bold; }
+        .aff-name { color: var(--aff-purple); font-weight: bold; }
+        .sect-name { color: var(--sect-cyan); font-weight: bold; }
+        .manual-name { color: var(--manual-orange); font-weight: bold; }
+        .rp-text { color: var(--rp-silver); text-shadow: 0 0 5px rgba(255,255,255,0.2); font-weight: bold; }
+
+        .btn-rebirth { background: none; border: 1px solid var(--danger-red); color: var(--danger-red); padding: 10px; cursor: pointer; font-weight: bold; font-size: 0.75rem; margin: 10px 20px 10px 20px; transition: 0.2s; text-transform: uppercase; }
+        .btn-rebirth:hover { background: var(--danger-red); color: black; }
+        .btn-upgrade { width: 100%; background: #1a1a1a; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; margin-top: 8px; cursor: pointer; font-size: 0.7rem; transition: 0.2s; }
+        .btn-upgrade:hover { border-color: var(--bloodline-gold); background: #222; }
+
+        #main-content { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .cultivation-box { background: var(--panel-bg); border: 2px solid #555; padding: 40px; position: relative; display: flex; flex-direction: column; align-items: center; min-height: 400px; outline: 1px solid #222; outline-offset: 5px; }
+        .stats-top-left { position: absolute; top: 30px; left: 30px; font-family: monospace; font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; }
+        
+        .figure-container { 
+            width: 350px; height: 350px; 
+            background: radial-gradient(circle, rgba(163, 51, 255, 0.1) 0%, transparent 70%); 
+            position: relative; margin: 20px 0; 
+            display: flex; justify-content: center; align-items: center;
+        }
+        .silhouette { 
+            width: 70px; height: 100px; background-color: white; z-index: 5;
+            clip-path: polygon(50% 0%, 65% 15%, 65% 30%, 90% 45%, 100% 75%, 80% 90%, 50% 85%, 20% 90%, 0% 75%, 10% 45%, 35% 30%, 35% 15%); 
+            transition: background-color 1s ease, transform 0.5s ease;
+        }
+
+        .evo-part { position: absolute; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+        .visible { opacity: 0.8 !important; }
+
+        .aura { width: 110px; height: 140px; border-radius: 50%; background: var(--bloodline-gold); filter: blur(25px); z-index: 1; }
+        .halo { width: 60px; height: 15px; border: 3px solid var(--admin-gold); border-radius: 50%; top: 85px; filter: drop-shadow(0 0 5px gold); z-index: 10; transform: rotateX(-15deg); }
+        .back-halo { width: 100px; height: 100px; border: 5px solid rgba(255, 215, 0, 0.7); border-radius: 50%; top: 55px; left: 50%; transform: translateX(-50%); filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9)) blur(2px); z-index: 2; background: radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, rgba(255, 215, 0, 0.3) 30%, rgba(255, 215, 0, 0.1) 60%, rgba(255, 215, 0, 0) 100%); box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.3); }
+        .back-halo-2 { width: 180px; height: 180px; border: 6px solid rgba(255, 215, 0, 0.7); border-radius: 50%; top: 5px; left: 50%; transform: translateX(-50%); filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9)) blur(3px); z-index: 1; background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, rgba(255, 215, 0, 0.2) 30%, rgba(255, 215, 0, 0.1) 60%, rgba(255, 215, 0, 0) 100%); box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), 0 0 80px rgba(255, 215, 0, 0.3), inset 0 0 25px rgba(255, 215, 0, 0.2); }
+        .back-halo-3 { width: 260px; height: 260px; border: 7px solid rgba(255, 215, 0, 0.7); border-radius: 50%; top: -50px; left: 50%; transform: translateX(-50%); filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9)) blur(4px); z-index: 0; background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(255, 215, 0, 0.15) 30%, rgba(255, 215, 0, 0.05) 60%, rgba(255, 215, 0, 0) 100%); box-shadow: 0 0 50px rgba(255, 215, 0, 0.4), 0 0 100px rgba(255, 215, 0, 0.2), inset 0 0 30px rgba(255, 215, 0, 0.1); }
+        
+        /* Special halo for top 1 leaderboard players */
+        .halo-top1 {
+            width: 80px;
+            height: 20px;
+            border: 4px solid #FFD700;
+            border-radius: 50%;
+            top: 80px;
+            filter: drop-shadow(0 0 15px #FFD700) drop-shadow(0 0 30px #FFA500) drop-shadow(0 0 45px #FF6347);
+            z-index: 10;
+            animation: top1HaloGlow 2s ease-in-out infinite alternate;
+            box-shadow: 0 0 20px #FFD700, 0 0 40px #FFA500, 0 0 60px #FF6347, inset 0 0 20px #FFD700;
+        }
+        
+        @keyframes top1HaloGlow {
+            0% {
+                filter: drop-shadow(0 0 15px #FFD700) drop-shadow(0 0 30px #FFA500) drop-shadow(0 0 45px #FF6347);
+                box-shadow: 0 0 20px #FFD700, 0 0 40px #FFA500, 0 0 60px #FF6347, inset 0 0 20px #FFD700;
+                transform: scale(1);
+            }
+            50% {
+                filter: drop-shadow(0 0 25px #FFD700) drop-shadow(0 0 50px #FFA500) drop-shadow(0 0 75px #FF6347);
+                box-shadow: 0 0 30px #FFD700, 0 0 60px #FFA500, 0 0 90px #FF6347, inset 0 0 30px #FFD700;
+                transform: scale(1.1);
+            }
+            100% {
+                filter: drop-shadow(0 0 35px #FFD700) drop-shadow(0 0 70px #FFA500) drop-shadow(0 0 105px #FF6347);
+                box-shadow: 0 0 40px #FFD700, 0 0 80px #FFA500, 0 0 120px #FF6347, inset 0 0 40px #FFD700;
+                transform: scale(1.2);
+            }
+        }
+        
+        .halo-top1::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 50%;
+            animation: top1HaloRing 3s linear infinite;
+        }
+        
+        @keyframes top1HaloRing {
+            0% {
+                transform: rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: rotate(180deg) scale(1.3);
+                opacity: 0.7;
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .wings { 
+            width: 320px; height: 100px; z-index: 2; 
+            display: flex; justify-content: center; perspective: 1000px;
+        }
+        .wings::before, .wings::after { 
+            content: ''; width: var(--wing-width, 200px); height: var(--wing-height, 40px); 
+            background: radial-gradient(ellipse at left, rgba(255,255,255,0.95) 0%, rgba(210,210,210,0.7) 60%, rgba(150,150,150,0) 100%);
+            clip-path: polygon(0% 40%, 10% 20%, 25% 5%, 45% 0%, 65% 2%, 80% 8%, 100% 5%, 90% 50%, 95% 65%, 80% 68%, 85% 82%, 70% 82%, 72% 95%, 55% 90%, 50% 100%, 35% 85%, 20% 75%, 5% 60%);
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+            transform-origin: left center; position: absolute; left: 50%;
+        }
+       .wings::after { transform: scaleX(-1); transform-origin: left center; }
+
+        @keyframes wingFlutter { 0%, 100% { transform: rotateY(0deg); } 50% { transform: rotateY(30deg); } }
+        @keyframes wingFlutterRight { 0%, 100% { transform: scaleX(-1) rotateY(0deg); } 50% { transform: scaleX(-1) rotateY(30deg); } }
+
+        .log-panel { background: var(--panel-bg); border: 1px solid var(--border-color); flex-grow: 1; padding: 15px; font-family: monospace; font-size: 0.8rem; color: #666; overflow-y: auto; }
+        .progress-bar-small { height: 4px; background: #222; width: 100%; margin-top: 5px; border-radius: 2px; overflow: hidden; }
+        
+        #char-name-ui { background: transparent; border: none; color: var(--bloodline-gold); font-weight: bold; text-align: center; width: 100%; font-family: inherit; font-size: 1rem; outline: none; border-bottom: 1px dashed #333; }
+
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+
+        .leaderboard-entry:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--bloodline-gold);
+        }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            color: var(--bloodline-gold);
+            min-width: 30px;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            margin: 0 10px;
+            color: var(--text-main);
+        }
+
+        .leaderboard-realm {
+            color: var(--aff-purple);
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+
+        .leaderboard-disqualified {
+            opacity: 0.5;
+            font-style: italic;
+            color: var(--danger-red);
+        }
+
+        .leaderboard-current-player {
+            border-color: var(--accent-green);
+            background: rgba(36, 255, 122, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="glass-overlay" class="glass-shatter-overlay"></div>
+
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-content" id="modal-box">
+            <div id="modal-title" class="modal-title">Ascension</div>
+            <div id="modal-text" class="modal-text">Are you ready to shed your mortal coil?</div>
+            <div class="modal-btns">
+                <button class="modal-btn cancel" onclick="closeModal()">Meditate Further</button>
+                <button id="modal-confirm-btn" class="modal-btn">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-title">Welcome to The Eternal Path</div>
+            <div class="modal-text">Choose your journey through cultivation:</div>
+            <div class="modal-btns" style="flex-direction: column; gap: 15px;">
+                <button class="modal-btn" onclick="showSignupModal()" style="background: var(--accent-green); border-color: var(--accent-green);">Sign Up - Create Account</button>
+                <button class="modal-btn" onclick="showLoginModal()" style="background: var(--root-blue); border-color: var(--root-blue);">Log In - Existing Account</button>
+                <button class="modal-btn cancel" onclick="stayAsGuest()">Stay as Guest - Local Save Only</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-title">The Eternal Path</div>
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="login-username" placeholder="Username" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
+                <input type="password" id="login-password" placeholder="Password" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
+                <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 15px;">
+                    Don't have an account? <a href="#" onclick="showSignupModal()" style="color: var(--accent-green);">Sign up</a>
+                </div>
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn cancel" onclick="closeLoginModal()">Cancel</button>
+                <button class="modal-btn" onclick="login()">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signup-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-title">The Eternal Path</div>
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="signup-username" placeholder="Choose Username" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
+                <input type="password" id="signup-password" placeholder="Choose Password" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
+                <input type="password" id="signup-confirm-password" placeholder="Confirm Password" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
+                <input type="email" id="signup-email" placeholder="Email (optional)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
+                <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 15px;">
+                    Already have an account? <a href="#" onclick="showLoginModal()" style="color: var(--accent-green);">Log in</a>
+                </div>
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn cancel" onclick="closeSignupModal()">Cancel</button>
+                <button class="modal-btn" onclick="signup()">Join</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sidebar">
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('tab-status', event)">Status</button>
+            <button class="tab-btn" onclick="switchTab('tab-rp', event)">RP Shop</button>
+            <button class="tab-btn" onclick="switchTab('tab-leaderboard', event)">Leaderboard</button>
+            <button class="tab-btn" onclick="switchTab('tab-settings', event)">Settings</button>
+        </div>
+
+        <div id="tab-status" class="tab-content active">
+            <div class="sidebar-header">Identity (Enter Name)</div>
+            <div class="roll-card">
+                <input type="text" id="char-name-ui" maxlength="35" oninput="changeName(this.value)" placeholder="Naming your soul...">
+                <div style="margin-top: 10px;">
+                    <button id="admin-toggle-btn" class="admin-btn" style="display: none; margin-top: 5px;" onclick="toggleAdminPanel()">Open Authority Panel</button>
+                </div>
+            </div>
+
+            <div class="sidebar-header">Grand Calculation</div>
+            <div class="roll-card" style="border-color: var(--aff-purple); background: rgba(163, 51, 255, 0.05);">
+                <div class="stat-line">
+                    <span>Total Qi Multiplier</span>
+                    <span style="color: var(--aff-purple); font-weight: bold;">Total Qi Multiplier</span>
+                    <span class="val" id="total-multi-display" style="text-shadow: 0 0 5px var(--aff-purple);">1.0x</span>
+                </div>
+            </div>
+
+            <div class="sidebar-header">Manual</div>
+            <div class="roll-card" style="border-color: var(--manual-orange)">
+                <span id="man-name" class="manual-name">-</span><br>
+                <div class="stat-line"><span>Level</span><span class="val" id="man-lv">1</span></div>
+                <div class="progress-bar-small"><div id="man-progress" style="height:100%; width:0%; background: var(--manual-orange);"></div></div>
+                <div class="stat-line"><span>Qi Multiplier</span><span class="val" id="man-mult">1</span></div>
+            </div>
+
+            <div class="sidebar-header">Traits & Multipliers</div>
+            <div class="roll-card">
+                <div class="bloodline-name" id="bl-name">-</div>
+                <div class="stat-line"><span>Bloodline Multi</span><span class="val" id="bl-multi">-</span></div>
+                <hr style="border:0; border-top:1px solid #222; margin: 8px 0;">
+                
+                <div class="root-name" id="root-name">Root Lv. 1</div>
+                <div class="stat-line"><span>Root Multi</span><span class="val" id="root-multi">-</span></div>
+                <hr style="border:0; border-top:1px solid #222; margin: 8px 0;">
+                
+                <div class="aff-name" id="aff-name">-</div>
+                <div class="stat-line"><span>Affinity Multi</span><span class="val" id="aff-multi">-</span></div>
+            </div>
+
+            <div class="sidebar-header">Sect Influence</div>
+            <div class="roll-card" style="border-color: var(--sect-cyan)">
+                <span id="sect-name-display" class="sect-name">-</span><br>
+                <div class="stat-line"><span>Sect Grade</span><span class="val" id="sect-tier-display">-</span></div>
+                <div class="stat-line"><span>Sect Multi</span><span class="val" id="sect-multi-display">-</span></div>
+                <div class="stat-line"><span>Rank</span><span class="val" id="sect-rank-display" style="color: var(--accent-green);">Outer Disciple</span></div>
+            </div>
+        </div>
+
+        <div id="tab-rp" class="tab-content">
+            <div class="sidebar-header">Permanent Heritage</div>
+            <div class="roll-card" style="border-color: var(--rp-silver)">
+                <div class="stat-line"><span>Available RP</span><span class="rp-text" id="rp-display">0</span></div>
+                <div class="stat-line" style="color: var(--accent-green);"><span>rp gain</span><span id="pending-rp">0</span></div>
+            </div>
+
+            <div class="roll-card">
+                <div class="stat-line"><strong>Cosmic Resonance</strong><span class="val">Lv. <span id="rpMulti-lv">0</span></span></div>
+                <div class="stat-line"><span>Bonus</span><span class="val" id="rpMulti-display">1.0x</span></div>
+                <div style="font-size: 0.6rem; color: #666; text-align: left; margin: 5px 0;">Multiplies all RP gained during rebirth.</div>
+                <div class="stat-line"><span>Cost</span><span style="color: var(--bloodline-gold)" id="rpMulti-cost">1000 RP</span></div>
+                <div style="display: flex; gap: 5px; margin-top: 8px;">
+                    <button class="btn-upgrade" onclick="buyUpgrade('rpMulti')" style="flex: 1;">Buy 1x</button>
+                    <button class="btn-upgrade" onclick="buyUpgrade10x('rpMulti')" style="flex: 1;">Buy 10x</button>
+                    <button class="btn-upgrade" onclick="buyUpgradeMax('rpMulti')" style="flex: 1;">Buy Max</button>
+                </div>
+            </div>
+
+            <div class="roll-card">
+                <div class="stat-line"><strong>Qi Essence</strong><span class="val">Lv. <span id="ess-lv">0</span></span></div>
+                <div class="stat-line"><span>Bonus</span><span class="val" id="ess-display">1.0x</span></div>
+                <div style="font-size: 0.6rem; color: #666; text-align: left; margin: 5px 0;">Permanent multiplier to all Qi gains.</div>
+                <div class="stat-line"><span>Cost</span><span style="color: var(--bloodline-gold)" id="ess-cost">25 RP</span></div>
+                <div style="display: flex; gap: 5px; margin-top: 8px;">
+                    <button class="btn-upgrade" onclick="buyUpgrade('essence')" style="flex: 1;">Buy 1x</button>
+                    <button class="btn-upgrade" onclick="buyUpgrade10x('essence')" style="flex: 1;">Buy 10x</button>
+                    <button class="btn-upgrade" onclick="buyUpgradeMax('essence')" style="flex: 1;">Buy Max</button>
+                </div>
+            </div>
+
+            <div class="roll-card">
+                <div class="stat-line"><strong>Heavenly Luck</strong><span class="val">Lv. <span id="luck-lv">0</span></span></div>
+                <div class="stat-line"><span>Bonus</span><span class="val" id="luck-display">1.0x</span></div>
+                <div style="font-size: 0.6rem; color: #666; text-align: left; margin: 5px 0;">Boosts luck for Bloodlines.</div>
+                <div class="stat-line"><span>Cost</span><span style="color: var(--bloodline-gold)" id="luck-cost">10 RP</span></div>
+                <div style="display: flex; gap: 5px; margin-top: 8px;">
+                    <button class="btn-upgrade" onclick="buyUpgrade('luck')" style="flex: 1;">Buy 1x</button>
+                    <button class="btn-upgrade" onclick="buyUpgrade10x('luck')" style="flex: 1;">Buy 10x</button>
+                    <button class="btn-upgrade" onclick="buyUpgradeMax('luck')" style="flex: 1;">Buy Max</button>
+                </div>
+            </div>
+
+            <div class="roll-card">
+                <div class="stat-line"><strong>Root Affinity</strong><span class="val">Lv. <span id="root-luck-lv">0</span></span></div>
+                <div class="stat-line"><span>Bonus</span><span class="val" id="root-luck-display">1.0x</span></div>
+                <div style="font-size: 0.6rem; color: #666; text-align: left; margin: 5px 0;">Significantly increases the chance of higher Root levels.</div>
+                <div class="stat-line"><span>Cost</span><span style="color: var(--bloodline-gold)" id="root-luck-cost">50 RP</span></div>
+                <div style="display: flex; gap: 5px; margin-top: 8px;">
+                    <button class="btn-upgrade" onclick="buyUpgrade('rootLuck')" style="flex: 1;">Buy 1x</button>
+                    <button class="btn-upgrade" onclick="buyUpgrade10x('rootLuck')" style="flex: 1;">Buy 10x</button>
+                    <button class="btn-upgrade" onclick="buyUpgradeMax('rootLuck')" style="flex: 1;">Buy Max</button>
+                </div>
+            </div>
+
+            <div class="roll-card">
+                <div class="stat-line"><strong>Ancient Wisdom</strong><span class="val">Lv. <span id="man-up-lv">0</span></span></div>
+                <div class="stat-line"><span>Bonus</span><span class="val" id="man-exp-mult">1.0x</span></div>
+                <div style="font-size: 0.6rem; color: #666; text-align: left; margin: 5px 0;">Greatly increases Manual mastery speed.</div>
+                <div class="stat-line"><span>Cost</span><span style="color: var(--bloodline-gold)" id="man-up-cost">15 RP</span></div>
+                <div style="display: flex; gap: 5px; margin-top: 8px;">
+                    <button class="btn-upgrade" onclick="buyUpgrade('manual')" style="flex: 1;">Buy 1x</button>
+                    <button class="btn-upgrade" onclick="buyUpgrade10x('manual')" style="flex: 1;">Buy 10x</button>
+                    <button class="btn-upgrade" onclick="buyUpgradeMax('manual')" style="flex: 1;">Buy Max</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-leaderboard" class="tab-content">
+            <div class="sidebar-header">Hall of Immortals</div>
+            <div class="roll-card">
+                <div style="font-size: 0.7rem; color: var(--text-dim); text-align: center; margin-bottom: 10px;">
+                    Highest cultivation realms achieved by worthy cultivators
+                </div>
+                <div id="leaderboard-list" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Leaderboard entries will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="tab-content">
+            <div class="sidebar-header">System Configuration</div>
+            <div class="roll-card">
+                <div class="stat-line">
+                    <span>Dark Mode</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle" checked onchange="toggleTheme()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="roll-card">
+                <div class="stat-line">
+                    <span>Scientific Notation</span>
+                    <label class="switch">
+                        <input type="checkbox" id="notation-toggle" onchange="toggleNotation()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div style="font-size: 0.6rem; color: var(--text-dim); text-align: left; margin-top: 5px;">Use e+ notation instead of name suffixes.</div>
+            </div>
+
+            <div class="roll-card">
+                <div class="stat-line">
+                    <span>Evolution Visuals</span>
+                    <label class="switch">
+                        <input type="checkbox" id="visuals-toggle" checked onchange="toggleVisuals()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="roll-card">
+                <div class="stat-line">
+                    <span>Minor Breakthrough Messages</span>
+                    <label class="switch">
+                        <input type="checkbox" id="minor-breakthrough-toggle" checked onchange="toggleMinorBreakthroughMessages()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div style="font-size: 0.6rem; color: var(--text-dim); text-align: left; margin-top: 5px;">Show stage advancement messages in system log.</div>
+            </div>
+
+            <div class="sidebar-header">Data Management</div>
+            <button class="admin-btn" style="margin-top: 5px; border-color: #444; color: #666;" onclick="hardReset()">Hard Reset Game</button>
+            
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                <div class="sidebar-header" style="margin-bottom: 10px;">Account Management</div>
+                <button class="admin-btn" style="width: 100%; margin-bottom: 5px; border-color: var(--accent-green); color: var(--accent-green);" onclick="showSignupModal()" id="signup-settings-btn">Sign Up</button>
+                <button class="admin-btn" style="width: 100%; margin-bottom: 5px; border-color: var(--root-blue); color: var(--root-blue);" onclick="showLoginModal()" id="login-settings-btn">Log In</button>
+                <button class="admin-btn" style="width: 100%; margin-bottom: 5px; border-color: var(--danger-red); color: var(--danger-red);" onclick="logout()" id="logout-btn" style="display: none;">Sign Out</button>
+                <div style="font-size: 0.6rem; color: var(--text-dim); margin-top: 10px;" id="auth-status-text">Playing as guest</div>
+            </div>
+        </div>
+
+        <button class="btn-rebirth" onclick="manualRebirth()">Seek Reincarnation (Claim RP)</button>
+    </div>
+
+    <div id="main-content">
+        <div style="text-align: center; font-size: 1rem; font-weight: bold; letter-spacing: 4px; color: var(--text-dim);">THE ETERNAL PATH</div>
+        
+        <div class="cultivation-box">
+            <div class="stats-top-left">
+                Name: <span id="stats-name" style="color: var(--text-main);">-</span><br>
+                Realm: <span id="realm-display" style="color: var(--accent-green);">Mortal (Stage 1)</span><br>
+                Physique: <span id="hp-display" style="color: var(--danger-red);">100</span> HP / 
+                          <span id="str-display" style="color: var(--manual-orange);">10</span> STR<br>
+                Age: <span id="age-y">0</span>y <span id="age-m">0</span>m<br>
+                Qi: <span id="qi-amt">0</span> / <span id="qi-needed">100</span><br>
+                Breakthrough in: <span id="breakthrough-timer" style="color: var(--accent-green);">Calculating...</span><br>
+                Lifespan: <span id="max-life">50</span>y
+            </div>
+
+            <div class="figure-container">
+                <div id="evo-burst" class="evo-effect burst-effect"></div>
+                <div id="evo-lightning" class="evo-effect lightning-bolt"></div>
+                <div id="evo-fire" class="evo-effect fire-aura"></div>
+                <div id="evo-void" class="evo-effect void-disk"></div>
+                <div id="evo-particle" class="evo-effect divine-particle"></div>
+
+                <div class="silhouette" id="char-sprite"></div>
+                <div id="evo-back-halo" class="evo-part back-halo"></div>
+                <div id="evo-back-halo-2" class="evo-part back-halo-2"></div>
+                <div id="evo-back-halo-3" class="evo-part back-halo-3"></div>
+                <div id="evo-aura" class="evo-part aura"></div>
+                <div id="evo-halo" class="evo-part halo"></div>
+                <div id="evo-wings" class="evo-part wings"></div>
+            </div>
+
+            <div style="width: 300px; text-align: center;">
+                <div style="height: 5px; background: #222; border-radius: 10px; margin-bottom: 8px; overflow: hidden;">
+                    <div id="qi-progress" style="height: 100%; width: 0%; background: var(--aff-purple);"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="log-panel" id="logs"></div>
+    </div>
+
+    <div id="admin-panel">
+        <button class="admin-btn" onclick="toggleAdminPanel()" style="border-color: var(--danger-red); color: var(--danger-red); margin-bottom: 15px;">Close Panel ×</button>
+        <div class="admin-title">Primordial Authority</div>
+        <div class="admin-input-group">
+            <label class="admin-label">Modify Bloodline</label>
+            <select class="admin-select" id="admin-bl-sel" onchange="adminUpdateTrait('bl', this.value)"></select>
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Modify Root Lv (Max 100)</label>
+            <input type="number" class="admin-input" id="admin-root-lv" value="1" min="1" max="100" onchange="adminUpdateVal('rootLv', this.value)">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Modify Affinity</label>
+            <select class="admin-select" id="admin-aff-sel" onchange="adminUpdateTrait('aff', this.value)"></select>
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Manual Level (No Cap)</label>
+            <input type="number" class="admin-input" id="admin-man-lv" value="1" min="1" onchange="adminUpdateVal('manualLv', this.value)">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Add Reincarnation Points (RP)</label>
+            <input type="number" class="admin-input" id="admin-rp-add" value="1000">
+            <button class="admin-btn" onclick="adminAddRP()">Grant RP</button>
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Max Lifespan</label>
+            <input type="number" class="admin-input" id="admin-life" value="50" onchange="adminUpdateVal('maxLife', parseInt(this.value))">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Health (HP)</label>
+            <input type="number" class="admin-input" id="admin-hp" value="100" onchange="adminUpdateVal('hp', parseInt(this.value))">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Strength (STR)</label>
+            <input type="number" class="admin-input" id="admin-str" value="10" onchange="adminUpdateVal('str', parseInt(this.value))">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Heavenly Luck Level</label>
+            <input type="number" class="admin-input" id="admin-luck" value="0" onchange="adminUpdateUpgrade('luck', parseInt(this.value))">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Ancient Wisdom Level</label>
+            <input type="number" class="admin-input" id="admin-manual-up" value="0" onchange="adminUpdateUpgrade('manual', parseInt(this.value))">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Qi Essence Level</label>
+            <input type="number" class="admin-input" id="admin-essence" value="0" onchange="adminUpdateUpgrade('essence', parseInt(this.value))">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Root Affinity Level</label>
+            <input type="number" class="admin-input" id="admin-root-luck-up" value="0" onchange="adminUpdateUpgrade('rootLuck', parseInt(this.value))">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Cosmic Resonance Level</label>
+            <input type="number" class="admin-input" id="admin-rp-multi" value="0" onchange="adminUpdateUpgrade('rpMulti', parseInt(this.value))">
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Dark Mode</label>
+            <select class="admin-select" id="admin-dark-mode" onchange="adminUpdateSetting('darkMode', this.value === 'true')">
+                <option value="true">Enabled</option>
+                <option value="false">Disabled</option>
+            </select>
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Show Visuals</label>
+            <select class="admin-select" id="admin-visuals" onchange="adminUpdateSetting('showVisuals', this.value === 'true')">
+                <option value="true">Enabled</option>
+                <option value="false">Disabled</option>
+            </select>
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Minor Breakthrough Messages</label>
+            <select class="admin-select" id="admin-minor-breakthrough" onchange="adminUpdateSetting('disableMinorBreakthroughMessages', this.value === 'false')">
+                <option value="true">Enabled</option>
+                <option value="false">Disabled</option>
+            </select>
+        </div>
+        <div class="admin-input-group">
+            <label class="admin-label">Scientific Notation</label>
+            <select class="admin-select" id="admin-first-life" onchange="adminUpdateVal('isFirstLife', this.value === 'true')">
+                <option value="true">True</option>
+                <option value="false">False</option>
+            </select>
+        </div>
+        <div class="admin-input-group">
+            <button class="admin-btn" onclick="refreshUI()" style="border-color: var(--accent-green); color: var(--accent-green); width: 100%; margin-top: 20px;">Apply Changes</button>
+        </div>
+    </div>
+
+    <script>
+        const SAVE_KEY = "Cosmic_RP_SaveData_v2"; 
+
+        const majorRealms = [
+    "Mortal", "Life-Essence Awakening", "Blood Refinement", "Bone Marrow Cleansing", "Organ Tempering", "Meridian Opening", "Acupoint Ignition", "Body Tempering (Early)", "Body Tempering (Mid)", "Body Tempering (Late)", "Flesh Sanctification", "Qi Sensing", "Qi Nurturing", "Qi Condensation", "Qi Condensation (Peak)", "Half-Step Qi Condensation", "Foundation Establishment (Early)", "Foundation Establishment (Late)", "Core Formation", "Half-Step Core Formation", "Core Formation (Shattered)", "Golden Core", "Soul Sprout", "Soul Forging", "Spirit Severing", "Nascent Soul", "Nascent Soul (Aura)", "Soul Transformation", "Dao Seed", "Dao Seeking", " Half-Step Nirvana", "Nirvana", "Dao Creation", "Tribulation Transcendent", "Immortal Ascension", "Earth Immortal", "Spirit-Jade Immortal", "Golden Immortal", "Celestial Immortal", "True Immortal", "Cosmic Immortal", "Celestial Immortal", "Primordial Immortal", "Zenith Immortal", "Immortal Sovereign", "Celestial Venerable", "World Creator", "Void Wanderer", "Star-Palace Anchor", "Constellation Weaver", "Galaxy Heart", "Heaven-Will Resonance", "Universal Overseer", "Law Embodiment", "Rule Weaver", "Decree Manifest", "Spatial Tyrant", "Temporal Master", "Dimensional Breaker", "Reality Forger", "Time Devourer", "Void Lord", "Eternal Sovereign", "Boundless Sovereign", "Ascendant Sovereign", "Ultimate Sovereign", "Supreme Sovereign", "Infinite Sovereign", "Eternal Lord", "Cosmic Lord", "Space Creator", "Reality Lord", "Reality Shaper", "Reality Emperor", "Dimension Lord", "Cosmic Emperor", "Supreme Lord", "Transcendent Lord", "Ultimate Lord", "Origin Master", "Eternal Master", "Supreme Master", "Transcendent Master", "Ultimate Master", "Eternal God", "Supreme God", "Transcendent God", "Ultimate God", "Eternal Deity", "Supreme Deity", "Transcendent Deity", "Ultimate Deity", "Half-Step Nullity", "Great Void Ancestor", "Primordial Void-Heart", "Primal Chaos Origin", "Grand Aeon Overlord", "Source Progenitor", "Grand Dao Walker", "Multiversal Constant", "Causality Weaver", "Fate Threader", "Karma Eraser", "Trans-Planar Sovereign", "Infinity Warden", "Chaos Breaker", "Transcendent One", "Void Creator", "Boundless Emptiness", "Absolute Singularity", "The Eternal Silence", "The Unnamed Zenith",
+    // Reinforcement realms - these give 1.1x per minor realm instead of 1.2x
+    "The Unnamed Zenith (1)", "The Unnamed Zenith (2)", "The Unnamed Zenith (3)", "The Unnamed Zenith (4)", "The Unnamed Zenith (5)", 
+    "The Unnamed Zenith (6)", "The Unnamed Zenith (7)", "The Unnamed Zenith (8)", "The Unnamed Zenith (9)", "The Unnamed Zenith (10)",
+    "The Unnamed Zenith (11)", "The Unnamed Zenith (12)", "The Unnamed Zenith (13)", "The Unnamed Zenith (14)", "The Unnamed Zenith (15)",
+    "The Unnamed Zenith (16)", "The Unnamed Zenith (17)", "The Unnamed Zenith (18)", "The Unnamed Zenith (19)", "The Unnamed Zenith (20)",
+    "The Unnamed Zenith (21)", "The Unnamed Zenith (22)", "The Unnamed Zenith (23)", "The Unnamed Zenith (24)", "The Unnamed Zenith (25)",
+    "The Unnamed Zenith (26)", "The Unnamed Zenith (27)", "The Unnamed Zenith (28)", "The Unnamed Zenith (29)", "The Unnamed Zenith (30)",
+    "The Unnamed Zenith (31)", "The Unnamed Zenith (32)", "The Unnamed Zenith (33)", "The Unnamed Zenith (34)", "The Unnamed Zenith (35)",
+    "The Unnamed Zenith (36)", "The Unnamed Zenith (37)", "The Unnamed Zenith (38)", "The Unnamed Zenith (39)", "The Unnamed Zenith (40)",
+    "The Unnamed Zenith (41)", "The Unnamed Zenith (42)", "The Unnamed Zenith (43)", "The Unnamed Zenith (44)", "The Unnamed Zenith (45)",
+    "The Unnamed Zenith (46)", "The Unnamed Zenith (47)", "The Unnamed Zenith (48)", "The Unnamed Zenith (49)", "The Unnamed Zenith (50)"
+        ];
+
+        const bloodlines = [
+            { id: 0, name: "Mortal", mult: 1.0, weight: 500 },
+            { id: 1, name: "Common", mult: 1.5, weight: 300 },
+            { id: 2, name: "Uncommon", mult: 2.0, weight: 200 },
+            { id: 3, name: "Rare", mult: 2.8, weight: 100 },
+            { id: 4, name: "Epic", mult: 4.0, weight: 50 },
+            { id: 5, name: "Legendary", mult: 6.0, weight: 25 },
+            { id: 6, name: "Mythic", mult: 9.0, weight: 10 },
+            { id: 7, name: "Ancient", mult: 15.0, weight: 4 },
+            { id: 8, name: "Primordial", mult: 25.0, weight: 1 },
+            { id: 9, name: "Divine", mult: 40.0, weight: 0.5 },
+            { id: 10, name: "Eternal", mult: 60.0, weight: 0.2 },
+            { id: 11, name: "Celestial", mult: 90.0, weight: 0.1 },
+            { id: 12, name: "Cosmic", mult: 150.0, weight: 0.05 },
+            { id: 13, name: "Transcendent", mult: 250.0, weight: 0.02 },
+            { id: 14, name: "Infinite", mult: 400.0, weight: 0.01 },
+            { id: 15, name: "Void-Touched", mult: 600.0, weight: 0.005 },
+            { id: 16, name: "Star-Blessed", mult: 900.0, weight: 0.002 },
+            { id: 17, name: "Time-Woven", mult: 1500.0, weight: 0.001 },
+            { id: 18, name: "Reality-Blessed", mult: 2500.0, weight: 0.0005 },
+            { id: 19, name: "Dimension-Linked", mult: 4000.0, weight: 0.0002 },
+            { id: 20, name: "Chaos-Infused", mult: 6000.0, weight: 0.0001 },
+            { id: 21, name: "Order-Bound", mult: 9000.0, weight: 0.00005 },
+            { id: 22, name: "Quantum-Entangled", mult: 15000.0, weight: 0.00002 },
+            { id: 23, name: "Singularity-Born", mult: 25000.0, weight: 0.00001 },
+            { id: 24, name: "Multiversal", mult: 40000.0, weight: 0.000005 },
+            { id: 25, name: "Omnipresent", mult: 60000.0, weight: 0.000002 },
+            { id: 26, name: "Absolute", mult: 90000.0, weight: 0.000001 },
+            { id: 27, name: "Abyss Walker", mult: 150000.0, weight: 0.000000000005 },
+            { id: 28, name: "Storm Caller", mult: 250000.0, weight: 0.000000000002 },
+            { id: 29, name: "Earth Shaper", mult: 400000.0, weight: 0.000000000001 },
+            { id: 30, name: "Sky Dancer", mult: 600000.0, weight: 0.0000000000005 },
+            { id: 31, name: "Flame Emperor", mult: 900000.0, weight: 0.0000000000002 },
+            { id: 32, name: "Frost Monarch", mult: 1500000.0, weight: 0.0000000000001 },
+            { id: 33, name: "Thunder Sovereign", mult: 2500000.0, weight: 0.00000000000005 },
+            { id: 34, name: "Wind Master", mult: 4000000.0, weight: 0.00000000000002 },
+            { id: 35, name: "Metal Sage", mult: 6000000.0, weight: 0.00000000000001 },
+            { id: 36, name: "Wood Guardian", mult: 9000000.0, weight: 0.000000000000005 },
+            { id: 37, name: "Water Dragon", mult: 15000000.0, weight: 0.000000000000002 },
+            { id: 38, name: "Fire Phoenix", mult: 25000000.0, weight: 0.000000000000001 },
+            { id: 39, name: "Earth Titan", mult: 40000000.0, weight: 0.0000000000000005 },
+            { id: 40, name: "Air Master", mult: 60000000.0, weight: 0.0000000000000002 },
+            { id: 41, name: "Void Emperor", mult: 90000000.0, weight: 0.0000000000000001 },
+            { id: 42, name: "Time Lord", mult: 150000000.0, weight: 0.00000000000000005 },
+            { id: 43, name: "Space Master", mult: 250000000.0, weight: 0.00000000000000002 },
+            { id: 44, name: "Reality Weaver", mult: 400000000.0, weight: 0.00000000000000001 },
+            { id: 45, name: "Dream Walker", mult: 600000000.0, weight: 0.000000000000000005 },
+            { id: 46, name: "Soul Eater", mult: 900000000.0, weight: 0.000000000000000002 },
+            { id: 47, name: "Mind Breaker", mult: 1500000000.0, weight: 0.000000000000000001 },
+            { id: 48, name: "Heart Stealer", mult: 2500000000.0, weight: 0.0000000000000000005 },
+            { id: 49, name: "Body Forger", mult: 4000000000.0, weight: 0.0000000000000000002 },
+            { id: 50, name: "Spirit King", mult: 6000000000.0, weight: 0.0000000000000000001 },
+            { id: 51, name: "Divine Child", mult: 9000000000.0, weight: 0.00000000000000000005 },
+            { id: 52, name: "Demon Prince", mult: 15000000000.0, weight: 0.00000000000000000002 },
+            { id: 53, name: "Angel Descendant", mult: 25000000000.0, weight: 0.00000000000000000001 },
+            { id: 54, name: "Devil Heritage", mult: 40000000000.0, weight: 0.000000000000000000005 },
+            { id: 55, name: "Dragon God", mult: 60000000000.0, weight: 0.000000000000000000002 },
+            { id: 56, name: "Phoenix Queen", mult: 90000000000.0, weight: 0.000000000000000000001 },
+            { id: 57, name: "Turtle Sage", mult: 150000000000.0, weight: 0.0000000000000000000005 },
+            { id: 58, name: "Tiger Emperor", mult: 250000000000.0, weight: 0.0000000000000000000002 },
+            { id: 59, name: "Crane Master", mult: 400000000000.0, weight: 0.0000000000000000000001 },
+            { id: 60, name: "Snake Sovereign", mult: 600000000000.0, weight: 0.00000000000000000000005 },
+            { id: 61, name: "Wolf Alpha", mult: 900000000000.0, weight: 0.00000000000000000000002 },
+            { id: 62, name: "Eagle Eye", mult: 1500000000000.0, weight: 0.00000000000000000000001 },
+            { id: 63, name: "Bear Guardian", mult: 2500000000000.0, weight: 0.000000000000000000000005 },
+            { id: 64, name: "Fox Trickster", mult: 4000000000000.0, weight: 0.000000000000000000000002 },
+            { id: 65, name: "Lion King", mult: 6000000000000.0, weight: 0.000000000000000000000001 },
+            { id: 66, name: "Hawk Striker", mult: 9000000000000.0, weight: 0.0000000000000000000000005 },
+            { id: 67, name: "Star Hunter", mult: 15000000000000.0, weight: 0.0000000000000000000000002 },
+            { id: 68, name: "Spider Weaver", mult: 25000000000000.0, weight: 0.0000000000000000000000001 },
+            { id: 69, name: "True Emperor", mult: 40000000000000.0, weight: 0.00000000000000000000000005 },
+            { id: 70, name: "Cosmic Being", mult: 60000000000000.0, weight: 0.00000000000000000000000001 }
+        ];
+            const affinities = [
+            { id: 0, name: "None", mult: 1.0, weight: 500, sectName: "Mortal Wandering Sect", manual: "Basic Breath Technique", basePower: 1.0, color: "#ffffff" },
+            { id: 1, name: "Dirt", mult: 1.02, weight: 400, sectName: "Lowly Mud Sect", manual: "Earth Tilling Breath", basePower: 1.2, color: "#8B4513" },
+            { id: 2, name: "Water", mult: 1.1, weight: 350, sectName: "River Flow Sect", manual: "Tidal Current Script", basePower: 1.5, color: "#1E90FF" },
+            { id: 3, name: "Fire", mult: 1.2, weight: 300, sectName: "Blazing Sun Sect", manual: "Incineration Mantra", basePower: 1.8, color: "#FF4500" },
+            { id: 4, name: "Wind", mult: 1.35, weight: 250, sectName: "Whispering Gale Hall", manual: "Storm Chaser Arts", basePower: 2.1, color: "#AFEEEE" },
+            { id: 5, name: "Ice", mult: 1.5, weight: 150, sectName: "Frost Citadel", manual: "Frozen Heart Sutra", basePower: 2.4, color: "#E0FFFF" },
+            { id: 6, name: "Lightning", mult: 1.8, weight: 60, sectName: "Heavenly Tribulation Hall", manual: "Thunderbolt Decree", basePower: 2.8, color: "#FFFFE0" },
+            { id: 7, name: "Light", mult: 2.2, weight: 15, sectName: "Radiant Temple", manual: "Solar Flare Scripture", basePower: 3.2, color: "#FFD700" },
+            { id: 8, name: "Shadow", mult: 3.0, weight: 4, sectName: "Eternal Night Abyss", manual: "Umbral Void Path", basePower: 3.6, color: "#4B0082" },
+            { id: 9, name: "Gravity", mult: 5.0, weight: 0.8, sectName: "Heavy Core Palace", manual: "Weight of the World", basePower: 4.0, color: "#708090" },
+            { id: 10, name: "Space", mult: 15.0, weight: 0.05, sectName: "Void Rift Pavilion", manual: "Spatial Distortion", basePower: 4.4, color: "#a333ff" },
+            { id: 11, name: "Time", mult: 40.0, weight: 0.01, sectName: "Eternal Chronos Temple", manual: "Chronos Seal", basePower: 4.7, color: "#00f2ff" },
+            { id: 12, name: "Infinity", mult: 100.0, weight: 0.0001, sectName: "Endless Horizon", manual: "The Infinite Verse", basePower: 5.0, color: "#ffffff" },
+            { id: 13, name: "Sound", mult: 300.0, weight: 0.00005, sectName: "Resonance Monastery", manual: "Sonic Wave Theory", basePower: 5.2, color: "#ff69b4" },
+            { id: 14, name: "Crystal", mult: 400.0, weight: 0.00002, sectName: "Gem Palace", manual: "Prismatic Refraction", basePower: 5.4, color: "#e6e6fa" },
+            { id: 15, name: "Blood", mult: 500.0, weight: 0.00001, sectName: "Crimson Temple", manual: "Vitality Arts", basePower: 5.6, color: "#8b0000" },
+            { id: 16, name: "Bone", mult: 600.0, weight: 0.000005, sectName: "Skeleton Hall", manual: "Skeleton Key Method", basePower: 5.8, color: "#f5f5dc" },
+            { id: 17, name: "Flesh", mult: 700.0, weight: 0.000002, sectName: "Meat Garden", manual: "Body Sculpture Art", basePower: 6.0, color: "#ffb6c1" },
+            { id: 18, name: "Dream", mult: 800.0, weight: 0.000001, sectName: "Sleeping Palace", manual: "Nightmare Control", basePower: 6.2, color: "#9370db" },
+            { id: 19, name: "Nightmare", mult: 900.0, weight: 0.0000005, sectName: "Fear Cathedral", manual: "Terror Manifestation", basePower: 6.4, color: "#4b0082" },
+            { id: 20, name: "Life", mult: 1000.0, weight: 0.0000002, sectName: "Vitality Sanctuary", manual: "Living Force", basePower: 6.6, color: "#32cd32" },
+            { id: 21, name: "Death", mult: 1100.0, weight: 0.0000001, sectName: "Underworld Gate", manual: "Soul Reaper Art", basePower: 6.8, color: "#2f4f4f" },
+            { id: 22, name: "Rebirth", mult: 1200.0, weight: 0.00000005, sectName: "Cycle Temple", manual: "Phoenix Renewal", basePower: 7.0, color: "#ff8c00" },
+            { id: 23, name: "Destruction", mult: 1300.0, weight: 0.00000002, sectName: "Ruin Fortress", manual: "Annihilation Technique", basePower: 7.2, color: "#8b0000" },
+            { id: 24, name: "Creation", mult: 1400.0, weight: 0.00000001, sectName: "Genesis Forge", manual: "World Building", basePower: 7.4, color: "#ffd700" },
+            { id: 25, name: "Order", mult: 1500.0, weight: 0.000000005, sectName: "Law Court", manual: "Cosmic Balance", basePower: 7.6, color: "#4169e1" },
+            { id: 26, name: "Chaos", mult: 1600.0, weight: 0.000000002, sectName: "Disorder Realm", manual: "Random Cascade", basePower: 7.8, color: "#ff1493" },
+            { id: 27, name: "Truth", mult: 1700.0, weight: 0.000000001, sectName: "Reality Sanctuary", manual: "Absolute Clarity", basePower: 8.0, color: "#ffffff" },
+            { id: 28, name: "Illusion", mult: 1800.0, weight: 0.0000000005, sectName: "Mirage Garden", manual: "False Reality", basePower: 8.2, color: "#dda0dd" },
+            { id: 29, name: "Memory", mult: 1900.0, weight: 0.0000000002, sectName: "Recollection Hall", manual: "Past Echoes", basePower: 8.4, color: "#87ceeb" },
+            { id: 30, name: "Future", mult: 2000.0, weight: 0.0000000001, sectName: "Destiny Observatory", manual: "Tomorrow's Path", basePower: 8.6, color: "#00ff7f" },
+            { id: 31, name: "Past", mult: 2100.0, weight: 0.00000000005, sectName: "History Library", manual: "Yesterday's Wisdom", basePower: 8.8, color: "#daa520" },
+            { id: 32, name: "Present", mult: 2200.0, weight: 0.00000000002, sectName: "Now Moment", manual: "Current Reality", basePower: 9.0, color: "#ff6347" },
+            { id: 33, name: "Metal", mult: 2300.0, weight: 0.00000000001, sectName: "Iron Fortress", manual: "Steel Refinement", basePower: 9.2, color: "#c0c0c0" },
+            { id: 34, name: "Wood", mult: 2400.0, weight: 0.000000000005, sectName: "Forest Temple", manual: "Tree Spirit Art", basePower: 9.4, color: "#228b22" },
+            { id: 35, name: "Earth", mult: 2500.0, weight: 0.000000000002, sectName: "Ground Palace", manual: "Soil Cultivation", basePower: 9.6, color: "#8b4513" },
+            { id: 36, name: "Air", mult: 2600.0, weight: 0.000000000001, sectName: "Wind Monastery", manual: "Gale Mastery", basePower: 9.8, color: "#87ceeb" },
+            { id: 37, name: "Aether", mult: 2700.0, weight: 0.0000000000005, sectName: "Ether Realm", manual: "Substance Transcendence", basePower: 10.0, color: "#e0ffff" },
+            { id: 38, name: "Nether", mult: 2800.0, weight: 0.0000000000002, sectName: "Underworld Sect", manual: "Darkness Absorption", basePower: 10.2, color: "#483d8b" },
+            { id: 39, name: "Divine", mult: 2900.0, weight: 0.0000000000001, sectName: "Celestial Court", manual: "God's Authority", basePower: 10.4, color: "#ffd700" },
+            { id: 40, name: "Demonic", mult: 3000.0, weight: 0.00000000000005, sectName: "Abyssal Cult", manual: "Devil's Contract", basePower: 10.6, color: "#8b0000" },
+            { id: 41, name: "Holy", mult: 3100.0, weight: 0.00000000000002, sectName: "Sacred Church", manual: "Saint's Blessing", basePower: 10.8, color: "#ffffff" },
+            { id: 42, name: "Unholy", mult: 3200.0, weight: 0.00000000000001, sectName: "Profane Altar", manual: "Sin's Embrace", basePower: 11.0, color: "#2f4f4f" },
+            { id: 43, name: "Pure", mult: 3300.0, weight: 0.000000000000005, sectName: "Clarity Monastery", manual: "Essence Refinement", basePower: 11.2, color: "#f0f8ff" },
+            { id: 44, name: "Corrupt", mult: 3400.0, weight: 0.000000000000002, sectName: "Tainted Garden", manual: "Decay Mastery", basePower: 11.4, color: "#800080" },
+            { id: 45, name: "Balance", mult: 3500.0, weight: 0.000000000000001, sectName: "Equilibrium Temple", manual: "Yin Yang Harmony", basePower: 11.6, color: "#808080" },
+            { id: 46, name: "Extremity", mult: 3600.0, weight: 0.0000000000000005, sectName: "Absolute Peak", manual: "Maximum Expression", basePower: 11.8, color: "#ff0000" },
+            { id: 47, name: "Void", mult: 3700.0, weight: 0.0000000000000002, sectName: "Empty Space", manual: "Nothingness Control", basePower: 12.0, color: "#000000" },
+            { id: 48, name: "Fullness", mult: 3800.0, weight: 0.0000000000000001, sectName: "Complete Circle", manual: "Totality Art", basePower: 12.2, color: "#ffffff" },
+            { id: 49, name: "Beginner", mult: 3900.0, weight: 0.00000000000000005, sectName: "Starting Gate", manual: "Novice's Journey", basePower: 12.4, color: "#90ee90" },
+            { id: 50, name: "Master", mult: 4000.0, weight: 0.00000000000000002, sectName: "Expert's Hall", manual: "Perfection Path", basePower: 12.6, color: "#4b0082" },
+            { id: 51, name: "Voidwalker", mult: 4100.0, weight: 0.00000000000000001, sectName: "Between Worlds", manual: "Dimension Step", basePower: 12.8, color: "#4b0082" },
+            { id: 52, name: "Dreamweaver", mult: 4200.0, weight: 0.000000000000000005, sectName: "Sleeping Court", manual: "Reality Bender", basePower: 13.0, color: "#9370db" },
+            { id: 53, name: "Soulbound", mult: 4300.0, weight: 0.000000000000000002, sectName: "Spirit Chain", manual: "Eternal Bond", basePower: 13.2, color: "#ff69b4" },
+            { id: 54, name: "Fateless", mult: 4400.0, weight: 0.000000000000000001, sectName: "Freedom Path", manual: "Destiny Breaker", basePower: 13.4, color: "#00ced1" },
+            { id: 55, name: "Immortal", mult: 4500.0, weight: 0.0000000000000000005, sectName: "Eternal Realm", manual: "Deathless Art", basePower: 13.6, color: "#ffd700" },
+            { id: 56, name: "Mortal", mult: 4600.0, weight: 0.0000000000000000002, sectName: "Life Cycle", manual: "Human Path", basePower: 13.8, color: "#daa520" },
+            { id: 57, name: "Transcendent", mult: 4700.0, weight: 0.0000000000000000001, sectName: "Beyond Limit", manual: "Overlord Method", basePower: 14.0, color: "#ff1493" },
+            { id: 58, name: "Ascendant", mult: 4800.0, weight: 0.00000000000000000005, sectName: "Rising Star", manual: "Heavenly Climb", basePower: 14.2, color: "#00bfff" },
+            { id: 59, name: "Nothingness", mult: 4900.0, weight: 0.00000000000000000002, sectName: "Fallen Angel", manual: "Redemption Path", basePower: 14.4, color: "#4169e1" },
+            { id: 60, name: "Primordial", mult: 5000.0, weight: 0.00000000000000000001, sectName: "First Source", manual: "Origin Art", basePower: 14.6, color: "#ff6347" },
+            { id: 61, name: "Ultimate", mult: 5200.0, weight: 0.000000000000000000005, sectName: "Final Form", manual: "Absolute Power", basePower: 14.8, color: "#8a2be2" },
+            { id: 62, name: "Boundless", mult: 6000.0, weight: 0.000000000000000000001, sectName: "Endless Path", manual: "Boundless Art", basePower: 15.0, color: "#ffffff" }
+        ];
+
+        let state = {
+            playerName: "Unnamed Soul",
+            isAdmin: false,
+            rp: 0,
+            upgrades: { luck: 0, manual: 0, essence: 0, rootLuck: 0, rpMulti: 0 },
+            qi: 0, currentNeeded: 100, realmIndex: 0, stage: 1,
+            months: 0, years: 0, maxLife: 50,
+            blId: 0, rootLv: 1, affId: 0,
+            manualLv: 1, manualExp: 0,
+            tickCount: 0,
+            isFirstLife: true,
+            settings: { darkMode: true, showVisuals: true, scientificMode: false, disableMinorBreakthroughMessages: false },
+            hp: 100, str: 10,
+            enlightened: false, enlightenmentEndTime: 0,
+            breakthroughStartTime: Date.now(), // Track when current breakthrough attempt started
+            // Authentication fields
+            isLoggedIn: false,
+            currentUser: null,
+            authToken: null
+        };
+
+        const UPGRADE_DATA = {
+            luck: { name: "Heavenly Luck", baseCost: 10, grow: 1.75, power: 1.35 },
+            manual: { name: "Ancient Wisdom", baseCost: 15, grow: 1.5, power: 1.3 },
+            essence: { name: "Qi Essence", baseCost: 25, grow: 2.0, power: 1.45 },
+            rootLuck: { name: "Root Affinity", baseCost: 20, grow: 1.65, power: 1.3 },
+            rpMulti: { name: "Cosmic Resonance", baseCost: 75, grow: 2.5, power: 1.5 }
+        };
+
+        let modalAction = null;
+        const suffixes = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc", "Ud", "Dd", "Td", "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nod", "Vg", "Uvg", "Dvg", "Tvg", "Qavg", "Qivg", "Sxvg", "Spvg", "Ocvg", "Novg", "Tg", "Utg", "Cen", "Un", "Du", "Tr", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nod", "Vg", "Uvg", "Dvg", "Tvg", "Qavg", "Qivg", "Sxvg", "Spvg", "Ocvg", "Novg", "Tg", "Utg", "Cen", "Un", "Du", "Tr", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nod", "Vg", "Uvg", "Dvg", "Tvg", "Qavg", "Qivg", "Sxvg", "Spvg", "Ocvg", "Novg", "Tg", "Utg", "Cen", "Un", "Du", "Tr", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nod", "Vg", "Uvg", "Dvg", "Tvg", "Qavg", "Qivg", "Sxvg", "Spvg", "Ocvg", "Novg", "Tg", "Utg", "Cen", "Un", "Du", "Tr", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg", "Qaa", "Qib", "Sxb", "Spb", "Ocb", "Noc", "Dvg", "Uvg", "Tvg"];
+
+        function getRootPower(lv) { return Math.pow(1.3, lv - 1); }
+        function getRootSectTier(lv) {
+            if (lv < 10) return "Third-Rate";
+            if (lv < 25) return "Second-Rate";
+            if (lv < 45) return "First-Rate";
+            if (lv < 70) return "Saint-Tier";
+            if (lv < 90) return "Holy-Land";
+            return "Primordial-Tier";
+        }
+
+        function getSectMulti(realmIdx) {
+            return Math.pow(2, realmIdx);
+        }
+
+        function getCombatStats() {
+            // Calculate HP and STR based on realm progression
+            let baseHp = 100;
+            let baseStr = 10;
+            let realmBonus = Math.pow(1.5, state.realmIndex); // Each realm gives 1.5x bonus
+            
+            let hp = Math.round(baseHp * realmBonus);
+            let str = Math.round(baseStr * realmBonus);
+            
+            // If admin has set custom values, use them directly
+            if (state.hp !== undefined && state.hp !== baseHp) hp = state.hp;
+            if (state.str !== undefined && state.str !== baseStr) str = state.str;
+            
+            return { health: hp, strength: str };
+        }
+
+        function getAgeExpMultiplier() {
+            const age = state.years;
+            
+            // Percentage-based logarithmic scaling with 1.5x per 10x increase
+            // Calculate progress toward next power of 10 milestone
+            if (age < 1) return 0.1;
+            if (age === 1) return 1.0; // Edge case: log10(1) = 0, handle separately
+            
+            const logAge = Math.log10(age);
+            const nextMilestone = Math.ceil(logAge);
+            const currentMilestone = Math.floor(logAge);
+            
+            // Handle exact power-of-10 ages (like 10, 100, 1000)
+            if (logAge === currentMilestone && logAge === nextMilestone) {
+                return Math.pow(1.5, currentMilestone); // Full milestone bonus
+            }
+            
+            // Calculate percentage progress toward next milestone
+            const progress = (logAge - currentMilestone) / (nextMilestone - currentMilestone);
+            
+            // Base multiplier is current milestone, add percentage of the next step
+            const baseMultiplier = Math.pow(1.5, currentMilestone);
+            const nextStepMultiplier = Math.pow(1.5, nextMilestone) - baseMultiplier;
+            
+            return Math.max(0.1, baseMultiplier + (nextStepMultiplier * progress));
+        }
+
+        function getAgeQiMultiplier() {
+            const age = state.years;
+            
+            // Percentage-based logarithmic scaling with 2x compounding per 10x increase
+            // Calculate progress toward next power of 10 milestone
+            if (age < 1) return 1.0;
+            if (age === 1) return 1.0; // Edge case: log10(1) = 0, handle separately
+            
+            const logAge = Math.log10(age);
+            const nextMilestone = Math.ceil(logAge);
+            const currentMilestone = Math.floor(logAge);
+            
+            // Handle exact power-of-10 ages (like 10, 100, 1000)
+            if (logAge === currentMilestone && logAge === nextMilestone) {
+                return Math.pow(2, currentMilestone); // Full milestone bonus
+            }
+            
+            // Calculate percentage progress toward next milestone
+            const progress = (logAge - currentMilestone) / (nextMilestone - currentMilestone);
+            
+            // Base multiplier is current milestone, add percentage of the next step
+            const baseMultiplier = Math.pow(2, currentMilestone);
+            const nextStepMultiplier = Math.pow(2, nextMilestone) - baseMultiplier;
+            
+            return baseMultiplier + (nextStepMultiplier * progress);
+        }
+
+        function getTotalQiMulti() {
+            const bl = bloodlines[state.blId];
+            const root = getRootPower(state.rootLv);
+            const aff = affinities[state.affId];
+            const sectMult = getSectMulti(state.realmIndex); 
+            const manualMult = Math.pow(aff.basePower, state.manualLv);
+            const essence = Math.pow(UPGRADE_DATA.essence.power, state.upgrades.essence);
+            const enlightenmentMult = state.enlightened ? 5 : 1;
+            const minorRealmBonus = Math.pow(1.01, state.stage - 1); // 1.01x per minor realm, compounding
+            const ageQiMult = getAgeQiMultiplier(); // Age-based Qi multiplier (2x per 10x age)
+            return bl.mult * root * aff.mult * sectMult * manualMult * essence * enlightenmentMult * minorRealmBonus * ageQiMult;
+        }
+
+        function rollMixedSystem(table, luckLevel) {
+            // 1. PER-LEVEL CUMULATIVE BANISH LOGIC
+            // Each individual level contributes to banishment
+            // Early levels give more, later levels give less
+            // Affinities get weaker banishment (70% strength)
+            let tiersToRemove = 0;
+            
+            // Check if this is affinities table (weaker banishment)
+            const isAffinities = table === affinities;
+            const strengthMultiplier = isAffinities ? 0.7 : 1.0;
+            
+            // Calculate banishment per level
+            for (let level = 1; level <= luckLevel; level++) {
+                let contribution = 0;
+                if (level <= 30) {
+                    contribution = 0.6; // Early levels: 0.6 per level (18 total at 30)
+                } else if (level <= 60) {
+                    contribution = 0.53; // Early-mid: 0.53 per level (16 total at 60)
+                } else if (level <= 90) {
+                    contribution = 0.47; // Mid levels: 0.47 per level (14 total at 90)
+                } else if (level <= 120) {
+                    contribution = 0.4; // Mid-late: 0.4 per level (12 total at 120)
+                } else if (level <= 150) {
+                    contribution = 0.33; // Late-mid: 0.33 per level (10 total at 150)
+                } else if (level <= 180) {
+                    contribution = 0.33; // Late: 0.33 per level (10 total at 180)
+                } else if (level <= 210) {
+                    contribution = 0.27; // Late: 0.27 per level (8 total at 210)
+                } else if (level <= 240) {
+                    contribution = 0.2; // Very late: 0.2 per level (6 total at 240)
+                } else if (level <= 270) {
+                    contribution = 0.13; // Endgame: 0.13 per level (4 total at 270)
+                } else if (level <= 300) {
+                    contribution = 0.07; // Final: 0.07 per level (2 total at 300)
+                } else {
+                    contribution = 0.05; // Beyond 300: minimal contribution
+                }
+                
+                tiersToRemove += contribution * strengthMultiplier;
+            }
+            
+            // Safety: Always leave at least the top 5 rarest tiers so the game doesn't break.
+            let maxBanish = Math.max(0, table.length - 5);
+            let actualToRemove = Math.min(tiersToRemove, maxBanish);
+            let banishedTable = table.slice(actualToRemove);
+
+            // 2. ADVANTAGE LOGIC (Optional but recommended)
+            // Even after banishing the worst, roll 2x and pick the best of the remaining.
+            let rollAttempts = 1 + Math.floor(luckLevel / 50); 
+            let bestRoll = null;
+
+            for (let i = 0; i < rollAttempts; i++) {
+                let currentRoll = roll(banishedTable); // Uses your standard weighted roll
+                if (!bestRoll || currentRoll.mult > bestRoll.mult) {
+                    bestRoll = currentRoll;
+                }
+            }
+            return bestRoll;
+        }
+
+        function rollRootLevel() {
+            // Use mixed system with root luck for both banish and advantage
+            let rootTable = [];
+            for (let i = 1; i <= 100; i++) {
+                rootTable.push({ id: i, multi: i, weight: 100 / Math.pow(2, i - 1) });
+            }
+            
+            return rollMixedSystem(rootTable, state.upgrades.rootLuck).id;
+        }
+
+        function toggleTheme() {
+            state.settings.darkMode = document.getElementById('theme-toggle').checked;
+            state.settings.darkMode ? document.body.classList.remove('light-mode') : document.body.classList.add('light-mode');
+            saveGame();
+        }
+
+        function toggleVisuals() {
+            state.settings.showVisuals = document.getElementById('visuals-toggle').checked;
+            state.settings.showVisuals ? document.body.classList.remove('hide-visuals') : document.body.classList.add('hide-visuals');
+            saveGame();
+        }
+
+        function toggleNotation() { state.settings.scientificMode = document.getElementById('notation-toggle').checked; updateUI(); saveGame(); }
+
+        function toggleMinorBreakthroughMessages() { 
+            state.settings.disableMinorBreakthroughMessages = !document.getElementById('minor-breakthrough-toggle').checked; 
+            saveGame(); 
+        }
+
+        function applySettingsUI() {
+            document.getElementById('theme-toggle').checked = state.settings.darkMode;
+            document.getElementById('visuals-toggle').checked = state.settings.showVisuals;
+            document.getElementById('notation-toggle').checked = state.settings.scientificMode;
+            document.getElementById('minor-breakthrough-toggle').checked = !state.settings.disableMinorBreakthroughMessages;
+            if (!state.settings.darkMode) document.body.classList.add('light-mode');
+            if (!state.settings.showVisuals) document.body.classList.add('hide-visuals');
+        }
+
+        function showModal(title, text, confirmLabel, isDanger, action) {
+            const modal = document.getElementById('custom-modal');
+            const box = document.getElementById('modal-box');
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            confirmBtn.innerText = confirmLabel;
+            box.style.borderColor = isDanger ? 'var(--danger-red)' : 'var(--bloodline-gold)';
+            confirmBtn.className = isDanger ? 'modal-btn confirm-red' : 'modal-btn';
+            modal.style.display = 'flex';
+            modalAction = action;
+        }
+
+        function closeModal() { 
+            document.getElementById('custom-modal').style.display = 'none'; 
+            modalAction = null; 
+            // Clear any error styling
+            clearInputErrors();
+        }
+        
+        function clearInputErrors() {
+            // Remove error styling from all input fields
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+            });
+        }
+        
+        function highlightInputError(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.style.borderColor = 'var(--danger-red)';
+                input.style.boxShadow = '0 0 5px rgba(220, 53, 69, 0.3)';
+            }
+        }
+
+        function saveGame() { 
+            // Always save to localStorage first
+            localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+            
+            // If logged in, also save to Google Sheets
+            if (state.isLoggedIn && state.authToken && USE_GOOGLE_SHEETS) {
+                saveToGoogleSheetsUserData();
+            }
+        }
+
+        async function loadFromGoogleSheetsUserData(token) {
+            if (!USE_GOOGLE_SHEETS || !DATABASE_API_URL || !token) return null;
+            
+            try {
+                const response = await fetch(DATABASE_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'loadGameData',
+                        token: token
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.gameData) {
+                    return result.gameData;
+                }
+            } catch (error) {
+                console.log('Failed to load game data from Google Sheets');
+            }
+            
+            return null;
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem(SAVE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = { ...state, ...parsed };
+                    if(!state.settings) state.settings = { darkMode: true, showVisuals: true, scientificMode: false, disableMinorBreakthroughMessages: false };
+                    if(!state.upgrades.rootLuck) state.upgrades.rootLuck = 0;
+                    if(!state.upgrades.rpMulti) state.upgrades.rpMulti = 0;
+                    if(state.playerName.toLowerCase() === "nathanthe10th") state.isAdmin = true;
+                } catch (e) { console.error("Save data corrupted."); }
+            }
+            applySettingsUI();
+        }
+
+        function hardReset() {
+            showModal("ERASE EXISTENCE", "THIS WILL PERMANENTLY DELETE ALL RP, UPGRADES, AND PROGRESS. THIS ACTION IS IRREVERSIBLE.", "Absolute Annihilation", true, () => {
+                document.body.classList.add('universe-collapse');
+                closeModal();
+                setTimeout(() => { 
+                    // Remove player from Google Sheets leaderboard
+                    if (USE_GOOGLE_SHEETS && state.playerName) {
+                        removeFromGoogleSheets(state.playerName);
+                    }
+                    
+                    // Remove from local leaderboard
+                    removeFromLocalLeaderboard();
+                    
+                    localStorage.removeItem(SAVE_KEY); 
+                    localStorage.removeItem(LEADERBOARD_KEY);
+                    localStorage.removeItem(PLAYER_ID_KEY);
+                    location.reload(); 
+                }, 1000);
+            });
+        }
+        
+        function removeFromLocalLeaderboard() {
+            const playerName = state.playerName || "Unnamed Soul";
+            let leaderboard = getLeaderboard();
+            
+            // Remove all entries with this player name
+            leaderboard = leaderboard.filter(entry => entry.filename !== playerName);
+            
+            // Save updated leaderboard
+            localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+        }
+        
+        function removeFromGoogleSheets(playerName) {
+            // Send request to remove player from Google Sheets
+            const removeData = { action: "remove", playerName: playerName };
+            
+            fetch(LEADERBOARD_API_URL, {
+                method: "DELETE",
+                mode: "no-cors",
+                cache: "no-cache",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(removeData)
+            }).catch(() => {
+                // Silently fail if Google Sheets removal fails
+            });
+        }
+
+        // Leaderboard functions
+        const LEADERBOARD_KEY = "EternalPath_Leaderboard";
+        const CODE_HASH_KEY = "EternalPath_CodeHash";
+        const PLAYER_ID_KEY = "EternalPath_PlayerID";
+        const TOP1_ACHIEVEMENT_KEY = "EternalPath_Top1Achievement";
+        const REINCARNATION_TIME_KEY = "EternalPath_ReincarnationTime";
+        const MAX_LEADERBOARD_ENTRIES = 20;
+        
+        // Google Sheets Integration
+        const DATABASE_API_URL = "https://script.google.com/macros/s/AKfycbw7sSaSv_l-ojOGx044rUPa0B552jbChdBjhs_LhbNMQ8eit5kQkS1kV8FXqvvUMfED/exec"; // Database script for user management
+        const LEADERBOARD_API_URL = "https://script.google.com/macros/s/AKfycby55PHwFpTwYqGYfrw-y82vQAJ3h3fcZM9DJ_1dCZFIm5sg50a1wRAFeYb98i81dcZCkQ/exec"; // Leaderboard script
+        const USE_GOOGLE_SHEETS = true; // Toggle to enable/disable Google Sheets
+
+        function getOrCreatePlayerID() {
+            let playerID = localStorage.getItem(PLAYER_ID_KEY);
+            if (!playerID) {
+                // Generate unique ID based on timestamp and random number
+                playerID = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem(PLAYER_ID_KEY, playerID);
+            }
+            return playerID;
+        }
+
+        function getCodeHash() {
+            // Simple hash of the game code to detect changes
+            const code = document.body.innerHTML;
+            let hash = 0;
+            for (let i = 0; i < code.length; i++) {
+                const char = code.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            return hash.toString();
+        }
+
+        // Authentication functions
+        function showAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.style.display = 'flex';
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.style.display = 'none';
+        }
+
+        function showLoginModal() {
+            // Close all modals first
+            closeAuthModal();
+            closeSignupModal();
+            const modal = document.getElementById('login-modal');
+            modal.style.display = 'flex';
+        }
+
+        function closeLoginModal() {
+            const modal = document.getElementById('login-modal');
+            modal.style.display = 'none';
+        }
+
+        function showSignupModal() {
+            // Close all modals first
+            closeAuthModal();
+            closeLoginModal();
+            const modal = document.getElementById('signup-modal');
+            modal.style.display = 'flex';
+        }
+
+        function closeSignupModal() {
+            const modal = document.getElementById('signup-modal');
+            modal.style.display = 'none';
+        }
+
+        function stayAsGuest() {
+            closeAuthModal();
+            state.isLoggedIn = false;
+            state.currentUser = null;
+            state.authToken = null;
+            addLog("Playing as guest - progress will be saved locally.", true);
+            saveGame();
+        }
+
+        async function signup() {
+            const username = document.getElementById('signup-username').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            const email = document.getElementById('signup-email').value.trim();
+
+            // Clear any previous error styling
+            clearInputErrors();
+
+
+            if (!username || !password) {
+                showModal("Error", "Username and password are required.", "OK", false, null);
+                return;
+            }
+
+            try {
+                const response = await fetch(DATABASE_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'login',
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    state.isLoggedIn = true;
+                    state.currentUser = result.user;
+                    state.authToken = result.token;
+                    
+                    // Load game data from Google Sheets
+                    const cloudGameData = await loadFromGoogleSheetsUserData(result.token);
+                    if (cloudGameData) {
+                        // Merge cloud data with current state, prioritizing cloud data
+                        state = { ...state, ...cloudGameData };
+                        addLog(`Welcome back, ${username}! Your progress has been synced from the cloud.`, true);
+                    } else {
+                        addLog(`Welcome back, ${username}!`, true);
+                    }
+                    
+                    closeLoginModal();
+                    saveGame();
+                    updateUI();
+                } else {
+                    showModal("Login Failed", result.error || 'Login failed.', "OK", false, null);
+                }
+            } catch (error) {
+                console.error('Login error details:', error);
+                showModal("Network Error", `Network error during login: ${error.message}`, "OK", false, null);
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            // Clear any previous error styling
+            clearInputErrors();
+
+            if (!username || !password) {
+                highlightInputError('login-username');
+                highlightInputError('login-password');
+                showModal("Error", "Username and password are required.", "OK", false, null);
+                return;
+            }
+
+            try {
+                const response = await fetch(DATABASE_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'login',
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    state.isLoggedIn = true;
+                    state.currentUser = result.user;
+                    state.authToken = result.token;
+                    
+                    // Load game data from Google Sheets
+                    const cloudGameData = await loadFromGoogleSheetsUserData(result.token);
+                    if (cloudGameData) {
+                        // Merge cloud data with current state, prioritizing cloud data
+                        state = { ...state, ...cloudGameData };
+                        addLog(`Welcome back, ${username}! Your progress has been synced from the cloud.`, true);
+                    } else {
+                        addLog(`Welcome back, ${username}!`, true);
+                    }
+                    
+                    closeLoginModal();
+                    saveGame();
+                    updateUI();
+                } else {
+                    highlightInputError('login-username');
+                    highlightInputError('login-password');
+                    showModal("Login Failed", result.error || 'Login failed.', "OK", false, null);
+                }
+            } catch (error) {
+                console.error('Login error details:', error);
+                highlightInputError('login-username');
+                highlightInputError('login-password');
+                showModal("Network Error", `Network error during login: ${error.message}`, "OK", false, null);
+            }
+        }
+
+        async function logout() {
+            if (state.isLoggedIn && state.authToken) {
+                try {
+                    await fetch(DATABASE_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'logout',
+                            token: state.authToken
+                        })
+                    });
+                } catch (error) {
+                    // Silently fail logout request
+                }
+            }
+
+            state.isLoggedIn = false;
+            state.currentUser = null;
+            state.authToken = null;
+            addLog("Logged out successfully.", true);
+            saveGame();
+            updateUI();
+        }
+
+        function checkAuthStatus() {
+            // Check if user is already logged in from saved data
+            if (state.isLoggedIn && state.authToken) {
+                // User is logged in, no need to show auth modal
+                return;
+            }
+
+            // Check if this is first time playing (no save data)
+            if (localStorage.getItem(SAVE_KEY) === null) {
+                // Show auth modal for first time players
+                setTimeout(() => {
+                    showAuthModal();
+                }, 500);
+            }
+        }
+
+        function checkCodeChange() {
+            const currentHash = getCodeHash();
+            const savedHash = localStorage.getItem(CODE_HASH_KEY);
+            
+            if (savedHash && savedHash !== currentHash) {
+                // Code has changed, reset leaderboard
+                localStorage.removeItem(LEADERBOARD_KEY);
+                addLog("Code detected - leaderboard reset.", true);
+            }
+            
+            // Save current hash
+            localStorage.setItem(CODE_HASH_KEY, currentHash);
+        }
+
+        function saveToLeaderboard() {
+            // Always save to local storage first
+            saveToLocalLeaderboard();
+            
+            // Also save to Google Sheets if enabled
+            if (USE_GOOGLE_SHEETS) {
+                saveToGoogleSheets();
+            }
+        }
+        
+        function saveToLocalLeaderboard() {
+            // Disqualify admin users
+            if (state.isAdmin) return;
+
+            // Require realm index 15 or higher to qualify
+            if (state.realmIndex < 15) return;
+            
+            // Check if 1 minute has passed since reincarnation
+            const reincarnationTime = localStorage.getItem(REINCARNATION_TIME_KEY);
+            if (reincarnationTime) {
+                const timeSinceReincarnation = Date.now() - parseInt(reincarnationTime);
+                const oneMinuteInMs = 60 * 1000; // 1 minute in milliseconds
+                if (timeSinceReincarnation < oneMinuteInMs) {
+                    return; // Not eligible yet
+                }
+            }
+
+            // Get current leaderboard
+            let leaderboard = getLeaderboard();
+            const playerID = getOrCreatePlayerID();
+            
+            // Check if player already has an entry from previous life (using player ID)
+            const existingEntryIndex = leaderboard.findIndex(e => e.playerID === playerID);
+            const hasPreviousLifeEntry = existingEntryIndex !== -1;
+            
+            // Create entry for current player using player ID and current name
+            const entry = {
+                playerID: playerID, // Unique identifier that doesn't change
+                filename: state.playerName || "Unnamed Soul", // Display name (can change)
+                realmIndex: state.realmIndex,
+                realmName: majorRealms[state.realmIndex],
+                stage: state.stage,
+                timestamp: Date.now(),
+                disqualified: false
+            };
+
+            if (hasPreviousLifeEntry) {
+                // Only update if current realm is higher than previous life
+                const previousEntry = leaderboard[existingEntryIndex];
+                if (state.realmIndex > previousEntry.realmIndex || 
+                    (state.realmIndex === previousEntry.realmIndex && state.stage > previousEntry.stage)) {
+                    leaderboard[existingEntryIndex] = entry;
+                }
+                // If not higher, don't update - only one entry per life
+            } else {
+                // Add new entry if no previous entry exists
+                leaderboard.push(entry);
+            }
+
+            // Sort by realm index (descending), then by stage (descending)
+            leaderboard.sort((a, b) => {
+                if (a.realmIndex !== b.realmIndex) {
+                    return b.realmIndex - a.realmIndex;
+                }
+                return b.stage - a.stage;
+            });
+
+            // Keep only top entries
+            leaderboard = leaderboard.slice(0, MAX_LEADERBOARD_ENTRIES);
+
+            // Save to localStorage
+            localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+            
+            // Check if current player is top 1 and apply special halo
+            checkAndApplyTop1Halo(leaderboard);
+        }
+
+        function getLeaderboard() {
+            const saved = localStorage.getItem(LEADERBOARD_KEY);
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error("Error parsing leaderboard:", e);
+                }
+            }
+            return [];
+        }
+
+        function updateLeaderboardUI() {
+            // Try Google Sheets first if enabled
+            if (USE_GOOGLE_SHEETS) {
+                refreshLeaderboardUI();
+            } else {
+                // Use local storage
+                const leaderboard = getLeaderboard();
+                displayLeaderboard(leaderboard, false);
+            }
+        }
+        
+        function displayLeaderboard(data, isGoogleSheets) {
+            const leaderboardList = document.getElementById('leaderboard-list');
+            
+            // Check and apply top 1 halo
+            checkAndApplyTop1Halo(data);
+            
+            if (data.length === 0) {
+                leaderboardList.innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 20px;">No worthy cultivators yet...</div>';
+                return;
+            }
+
+            const playerID = getOrCreatePlayerID();
+            const currentPlayerName = state.playerName || "Unnamed Soul";
+            
+            let html = '';
+            data.forEach((entry, index) => {
+                const playerName = isGoogleSheets ? entry.playerName : entry.filename;
+                const realmName = isGoogleSheets ? getRealmName(entry.realmIndex) : entry.realmName;
+                
+                // Check if this is the current player (using player ID for tracking)
+                const isCurrentPlayer = (entry.playerID === playerID) || 
+                    (entry.filename === currentPlayerName && !entry.playerID); // Fallback for old entries
+                
+                const entryClass = isCurrentPlayer ? 'leaderboard-entry leaderboard-current-player' : 'leaderboard-entry';
+                
+                html += `
+                    <div class="${entryClass}">
+                        <span class="leaderboard-rank">#${index + 1}</span>
+                        <span class="leaderboard-name">${playerName}</span>
+                        <span class="leaderboard-realm">${realmName} St.${entry.stage}</span>
+                    </div>
+                `;
+            });
+            
+            leaderboardList.innerHTML = html;
+        }
+
+        function clearLeaderboard() {
+            showModal("Clear Leaderboard", "This will permanently delete all leaderboard entries. Are you sure?", "Clear All", true, () => {
+                localStorage.removeItem(LEADERBOARD_KEY);
+                updateLeaderboardUI();
+                addLog("Leaderboard has been cleared.", true);
+                closeModal();
+            });
+        }
+
+        function checkAndApplyTop1Halo(leaderboardData) {
+            // Check if current player is top 1
+            if (leaderboardData && leaderboardData.length > 0) {
+                const topEntry = leaderboardData[0];
+                const playerID = getOrCreatePlayerID();
+                const currentPlayerName = state.playerName || "Unnamed Soul";
+                
+                // Check if current player is the top entry (using player ID for tracking)
+                const isCurrentPlayerTop = (topEntry.playerID === playerID) || 
+                    (topEntry.filename === currentPlayerName && !topEntry.playerID); // Fallback for old entries
+                
+                if (isCurrentPlayerTop) {
+                    // Check if this is the first time achieving #1
+                    const hasAchievedTop1 = localStorage.getItem(TOP1_ACHIEVEMENT_KEY);
+                    if (!hasAchievedTop1) {
+                        // Wait 1 second before applying halo and showing message
+                        setTimeout(() => {
+                            // Apply special top 1 halo
+                            const haloElement = document.getElementById('evo-halo');
+                            if (haloElement) {
+                                haloElement.classList.remove('halo');
+                                haloElement.classList.add('halo-top1');
+                                haloElement.classList.add('visible');
+                            }
+                            
+                            addLog("👑 You are #1 on the Hall of Immortals! Special halo activated.", true);
+                            localStorage.setItem(TOP1_ACHIEVEMENT_KEY, "true");
+                        }, 1000);
+                    } else {
+                        // If already achieved #1 before, apply halo immediately
+                        const haloElement = document.getElementById('evo-halo');
+                        if (haloElement) {
+                            haloElement.classList.remove('halo');
+                            haloElement.classList.add('halo-top1');
+                            haloElement.classList.add('visible');
+                        }
+                    }
+                } else {
+                    // Remove special halo if not top 1
+                    const haloElement = document.getElementById('evo-halo');
+                    if (haloElement) {
+                        haloElement.classList.remove('halo-top1');
+                        // Only add regular halo if player qualifies (realm index >= 10)
+                        if (state.realmIndex >= 10) {
+                            haloElement.classList.add('halo');
+                            haloElement.classList.add('visible');
+                        } else {
+                            haloElement.classList.remove('visible');
+                        }
+                    }
+                    
+                    // Remove #1 achievement if no longer top 1
+                    localStorage.removeItem(TOP1_ACHIEVEMENT_KEY);
+                }
+            }
+        }
+
+        // Google Sheets Integration Functions
+        function saveToGoogleSheetsUserData() {
+            if (!USE_GOOGLE_SHEETS || !DATABASE_API_URL || !state.isLoggedIn || !state.authToken) return;
+            
+            const userData = {
+                action: 'saveGameData',
+                token: state.authToken,
+                gameData: state
+            };
+            
+            fetch(DATABASE_API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            }).catch(() => {
+                // Silently fail if Google Sheets save fails
+                console.log('Failed to save game data to Google Sheets');
+            });
+        }
+
+        function saveToGoogleSheets() {
+            if (!USE_GOOGLE_SHEETS || !LEADERBOARD_API_URL || state.isAdmin) return;
+            
+            // Require realm index 15 or higher to qualify
+            if (state.realmIndex < 15) return;
+            
+            // Check if 1 minute has passed since reincarnation
+            const reincarnationTime = localStorage.getItem(REINCARNATION_TIME_KEY);
+            if (reincarnationTime) {
+                const timeSinceReincarnation = Date.now() - parseInt(reincarnationTime);
+            };
+            
+            fetch(LEADERBOARD_API_URL, {
+                method: "POST",
+                mode: "no-cors",
+                cache: "no-cache",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(leaderboardData)
+            }).then(response => {
+                if (response.ok) {
+                    addLog("Leaderboard updated successfully!", true);
+                } else {
+                    addLog("Failed to update leaderboard.", true);
+                }
+            }).catch(() => {
+                addLog("Leaderboard update failed.", true);
+            });
+        }
+
+        async function refreshLeaderboardUI() {
+            const display = document.getElementById('leaderboard-list');
+            if (!display || !LEADERBOARD_API_URL) return;
+
+            try {
+                const response = await fetch(LEADERBOARD_API_URL);
+                const data = await response.json();
+
+                let html = `<table style="width:100%; text-align:left; border-spacing: 0 5px;">
+                    <tr style="color: var(--text-dim); font-size: 0.8em;">
+                        <th>RANK</th><th>NAME</th><th style="text-align:right">REALM</th>
+                    </tr>`;
+                
+                data.forEach((p, i) => {
+                    const realmName = majorRealms[p.realmIndex] || "Mortal";
+                    const playerName = p.playerName || "Unnamed Soul"; // Use playerName from Google Sheets
+                    html += `<tr>
+                        <td>#${i+1}</td>
+                        <td style="color:var(--bloodline-gold)">${playerName}</td>
+                        <td style="text-align:right">${realmName} ${p.stage}</td>
+                    </tr>`;
+                });
+                html += `</table>`;
+                display.innerHTML = html;
+                
+                // Check and apply top 1 halo with updated data
+                checkAndApplyTop1Halo(data);
+            } catch (e) {
+                display.innerHTML = "Heavenly connection lost...";
+            }
+        }
+
+        function checkAndUpdateLeaderboard() {
+            // Only qualified players (Nascent Soul+) can affect top rankings
+            if (state.realmIndex < 12) return;
+            
+            // Get current leaderboard to check if player might be in top 3
+            if (USE_GOOGLE_SHEETS) {
+                // For Google Sheets, just refresh immediately since we can't easily check local data
+                setTimeout(refreshLeaderboardUI, 500); // Small delay to ensure data is saved
+            } else {
+                // For local storage, check if player is in top 3
+                const leaderboard = getLeaderboard();
+                const playerID = getOrCreatePlayerID();
+                const currentPlayerName = state.playerName || "Unnamed Soul";
+                
+                // Find current player's position
+                let playerPosition = -1;
+                for (let i = 0; i < Math.min(3, leaderboard.length); i++) {
+                    const entry = leaderboard[i];
+                    const isCurrentPlayer = (entry.playerID === playerID) || 
+                        (entry.filename === currentPlayerName && !entry.playerID);
+                    
+                    if (isCurrentPlayer) {
+                        playerPosition = i + 1;
+                        break;
+                    }
+                }
+                
+                // If player is in top 3 or might be, refresh immediately
+                if (playerPosition <= 3 || playerPosition === -1) {
+                    setTimeout(() => {
+                        const updatedLeaderboard = getLeaderboard();
+                        displayLeaderboard(updatedLeaderboard, false);
+                    }, 500);
+                }
+            }
+        }
+
+        function switchTab(tabId, evt) {
+            const contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+            const btns = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < btns.length; i++) btns[i].classList.remove("active");
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+            
+            // Update leaderboard when tab is opened
+            if (tabId === 'tab-leaderboard') {
+                updateLeaderboardUI();
+            }
+        }
+
+        function formatNum(num) {
+            if (num < 1000) return Math.floor(num);
+            if (state.settings.scientificMode || num >= 1e102) return num.toExponential(2).replace("+", "");
+            const exp = Math.floor(Math.log10(num));
+            const tier = Math.floor(exp / 3);
+            if (tier < suffixes.length) {
+                const shortNum = num / Math.pow(10, tier * 3);
+                return shortNum.toFixed(2).replace(/\.00$/, "") + suffixes[tier];
+            }
+            return num.toExponential(2).replace("+", "");
+        }
+
+        function formatStatusNum(num) {
+            // Show full numbers rounded to 2 decimal places for multipliers under 100
+            if (num < 100) {
+                return num.toFixed(2);
+            }
+            // Use regular formatting for 100+ multipliers
+            return formatNum(num);
+        }
+
+        function calculateRP() {
+            let majorRealm = state.realmIndex;
+            let totalStagesPassed = Math.max(0, (majorRealm * 10) + state.stage - 4); // Ensure never negative
+            
+            // Use majorRealm + 1 for calculation (as per your specification)
+            let realmForCalc = majorRealm + 1;
+            let baseRP = (realmForCalc * totalStagesPassed) * 3;
+            
+            // Get stage multiplier first
+            let stageMultiplier;
+            if (majorRealm > 99) {
+                // Reinforcement realms use 1.1x per minor realm
+                stageMultiplier = Math.pow(1.1, state.stage);
+            } else {
+                // Normal realms use 1.05x per minor realm
+                stageMultiplier = Math.pow(1.05, state.stage);
+            }
+            
+            // Apply 3x multiplier for each major realm passed, compounding on top of stage multiplier
+            let totalRP = baseRP * Math.pow(3, majorRealm) * stageMultiplier;
+            
+            // Apply age-based RP multiplier (1.5x scaling per 10x increase)
+            let ageMultiplier = 1;
+            if (state.years >= 1) {
+                if (state.years === 1) {
+                    ageMultiplier = 1; // Edge case: log10(1) = 0, handle separately
+                } else {
+                    const logAge = Math.log10(state.years);
+                    const nextMilestone = Math.ceil(logAge);
+                    const currentMilestone = Math.floor(logAge);
+                    
+                    // Handle exact power-of-10 ages (like 10, 100, 1000)
+                    if (logAge === currentMilestone && logAge === nextMilestone) {
+                        ageMultiplier = Math.pow(1.5, currentMilestone); // Full milestone bonus
+                    } else {
+                        // Calculate percentage progress toward next milestone
+                        const progress = (logAge - currentMilestone) / (nextMilestone - currentMilestone);
+                        
+                        // Base multiplier is current milestone, add percentage of the next step
+                        const baseMultiplier = Math.pow(1.5, currentMilestone);
+                        const nextStepMultiplier = Math.pow(1.5, nextMilestone) - baseMultiplier;
+                        
+                        ageMultiplier = baseMultiplier + (nextStepMultiplier * progress);
+                    }
+                }
+            }
+            
+            // Apply RP upgrade multiplier
+            let rpMulti = Math.pow(UPGRADE_DATA.rpMulti.power, state.upgrades.rpMulti);
+            return Math.floor(totalRP * rpMulti * ageMultiplier);
+        }
+
+        function getUpgradeCost(type) { return UPGRADE_DATA[type].baseCost * Math.pow(UPGRADE_DATA[type].grow, state.upgrades[type]); }
+
+        function buyUpgrade(type) {
+            let cost = getUpgradeCost(type);
+            if (state.rp >= cost) {
+                state.rp -= cost;
+                state.upgrades[type]++;
+                addLog(`Purchased ${UPGRADE_DATA[type].name} (Lv. ${state.upgrades[type]})`, true);
+                updateUI();
+                saveGame();
+            } else { addLog("Not enough RP!"); }
+        }
+
+        function buyUpgrade10x(type) {
+            let totalCost = 0;
+            let currentLevel = state.upgrades[type];
+            
+            // Calculate cost for 10 upgrades
+            for (let i = 0; i < 10; i++) {
+                totalCost += UPGRADE_DATA[type].baseCost * Math.pow(UPGRADE_DATA[type].grow, currentLevel + i);
+            }
+            
+            if (state.rp >= totalCost) {
+                state.rp -= totalCost;
+                state.upgrades[type] += 10;
+                addLog(`Purchased 10x ${UPGRADE_DATA[type].name} (Lv. ${state.upgrades[type]})`, true);
+                updateUI();
+                saveGame();
+            } else { addLog("Not enough RP for 10x purchase!"); }
+        }
+
+        function buyUpgradeMax(type) {
+            let totalCost = 0;
+            let currentLevel = state.upgrades[type];
+            let upgradesToBuy = 0;
+            
+            // Calculate how many upgrades can be afforded
+            while (true) {
+                let nextCost = UPGRADE_DATA[type].baseCost * Math.pow(UPGRADE_DATA[type].grow, currentLevel + upgradesToBuy);
+                if (state.rp - totalCost >= nextCost) {
+                    totalCost += nextCost;
+                    upgradesToBuy++;
+                    
+                    // Prevent infinite loop
+                    if (upgradesToBuy > 1000) break;
+                } else {
+                    break;
+                }
+            }
+            
+            if (upgradesToBuy > 0) {
+                state.rp -= totalCost;
+                state.upgrades[type] += upgradesToBuy;
+                addLog(`Purchased ${upgradesToBuy}x ${UPGRADE_DATA[type].name} (Lv. ${state.upgrades[type]})`, true);
+                updateUI();
+                saveGame();
+            } else { addLog("Not enough RP for any upgrades!"); }
+        }
+
+        function getSectRank(realmIdx) {
+            if (realmIdx < 5) return "Outer Disciple";
+            if (realmIdx < 12) return "Inner Disciple";
+            if (realmIdx < 20) return "Core Disciple";
+            if (realmIdx < 30) return "Elder";
+            if (realmIdx < 45) return "Grand Elder";
+            if (realmIdx < 60) return "Sect Master";
+            return "Ancestral Patriarch";
+        }
+
+        function changeName(newName) {
+            // Enforce 35-character limit
+            if (newName && newName.length > 35) {
+                newName = newName.substring(0, 35);
+                addLog("Name shortened to 35 characters maximum.", true);
+            }
+            
+            state.playerName = newName || "Unnamed Soul";
+            document.getElementById('stats-name').innerText = state.playerName;
+            if(state.playerName.toLowerCase() === "nathanthe10th" && !state.isAdmin) triggerGlassShatter();
+            saveGame();
+        }
+
+        function triggerGlassShatter() {
+            const overlay = document.getElementById('glass-overlay');
+            const root = document.documentElement;
+            document.body.classList.add('shatter-active');
+            let count = 0; const max = 60; let intensity = 0;
+            const interval = setInterval(() => {
+                count++; intensity += 0.35; 
+                root.style.setProperty('--shake-intensity', intensity + 'px');
+                const crack = document.createElement('div');
+                crack.className = 'crack';
+                const centerX = window.innerWidth / 2; const centerY = window.innerHeight / 2;
+                const angle = Math.random() * Math.PI * 2; const radius = Math.max(window.innerWidth, window.innerHeight);
+                const startX = centerX + Math.cos(angle) * radius; const startY = centerY + Math.sin(angle) * radius;
+                const length = radius * 0.8;
+                crack.style.width = (Math.random() * 2 + 1) + 'px'; crack.style.height = length + 'px';
+                crack.style.left = startX + 'px'; crack.style.top = startY + 'px';
+                const angleDeg = (Math.atan2(centerY - startY, centerX - startX) * 180 / Math.PI) - 90;
+                const jitter = (Math.random() * 16 - 8); 
+                crack.style.transform = `rotate(${angleDeg + jitter}deg)`;
+                overlay.appendChild(crack);
+                overlay.classList.add('crack-flash');
+                setTimeout(() => overlay.classList.remove('crack-flash'), 40);
+                if (count >= max) { clearInterval(interval); createFinalCrack(); }
+            }, 40);
+        }
+
+        function createFinalCrack() {
+            const overlay = document.getElementById('glass-overlay');
+            const root = document.documentElement;
+            document.body.classList.remove('shatter-active');
+            overlay.innerHTML = ''; 
+            const container = document.createElement('div');
+            container.className = 'final-crack-container';
+            const leftHalf = document.createElement('div'); leftHalf.className = 'crack-half shutter-left';
+            const rightHalf = document.createElement('div'); rightHalf.className = 'crack-half shutter-right';
+            container.appendChild(leftHalf); container.appendChild(rightHalf); overlay.appendChild(container);
+            setTimeout(() => {
+                document.body.classList.add('reveal-active');
+                document.body.classList.add('no-shake');
+                root.style.setProperty('--shake-intensity', '0px');
+                leftHalf.classList.add('reveal-left'); rightHalf.classList.add('reveal-right');
+                const flickerInterval = setInterval(() => {
+                    if (Math.random() > 0.9) { leftHalf.style.filter = "brightness(1.5)"; rightHalf.style.filter = "brightness(1.5)"; }
+                    else { leftHalf.style.filter = "none"; rightHalf.style.filter = "none"; }
+                }, 100);
+                setTimeout(() => { clearInterval(flickerInterval); finalizeBreakthrough(); }, 50); 
+            }, 1200);
+        }
+
+        function finalizeBreakthrough() {
+            const overlay = document.getElementById('glass-overlay');
+            document.body.classList.add('breakthrough-flash');
+            state.isAdmin = true; initAdminPanel();
+            addLog("DIVINE AUTHORITY RESTORED: THE VOID HAS OPENED.", true);
+            setTimeout(() => {
+                overlay.style.transition = "opacity 1.2s ease-out"; overlay.style.opacity = "0";
+                document.body.classList.remove('reveal-active'); document.body.classList.remove('no-shake');
+                setTimeout(() => { overlay.innerHTML = ''; overlay.style.opacity = "1"; document.body.classList.remove('breakthrough-flash'); }, 1300);
+                document.getElementById('admin-panel').style.display = 'flex';
+            }, 200);
+        }
+
+        function initAdminPanel() {
+            document.getElementById('admin-panel').style.display = 'flex';
+            document.getElementById('admin-toggle-btn').style.display = 'block';
+            document.getElementById('admin-bl-sel').innerHTML = '';
+            document.getElementById('admin-aff-sel').innerHTML = '';
+            bloodlines.forEach((b, i) => document.getElementById('admin-bl-sel').add(new Option(b.name, i)));
+            affinities.forEach((a, i) => document.getElementById('admin-aff-sel').add(new Option(a.name, i)));
+            
+            // Populate admin fields with current values
+            document.getElementById('admin-hp').value = state.hp;
+            document.getElementById('admin-str').value = state.str;
+            document.getElementById('admin-life').value = state.maxLife;
+            document.getElementById('admin-tick').value = state.tickCount;
+            document.getElementById('admin-first-life').value = state.isFirstLife ? 'true' : 'false';
+            document.getElementById('admin-root-lv').value = state.rootLv;
+            document.getElementById('admin-luck').value = state.upgrades.luck;
+            document.getElementById('admin-manual-up').value = state.upgrades.manual;
+            document.getElementById('admin-essence').value = state.upgrades.essence;
+            document.getElementById('admin-root-luck-up').value = state.upgrades.rootLuck;
+            document.getElementById('admin-rp-multi').value = state.upgrades.rpMulti;
+            document.getElementById('admin-dark-mode').value = state.settings.darkMode ? 'true' : 'false';
+            document.getElementById('admin-visuals').value = state.settings.showVisuals ? 'true' : 'false';
+            document.getElementById('admin-minor-breakthrough').value = !state.settings.disableMinorBreakthroughMessages ? 'true' : 'false';
+            document.getElementById('admin-scientific').value = state.settings.scientificMode ? 'true' : 'false';
+        }
+
+        function toggleAdminPanel() {
+            const panel = document.getElementById('admin-panel');
+            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'flex' : 'none';
+        }
+
+        function adminUpdateVal(key, val) { 
+            // Don't apply changes immediately - just store in temp variables
+            if (!window.adminTempValues) window.adminTempValues = {};
+            window.adminTempValues[key] = parseInt(val);
+        }
+        function adminUpdateUpgrade(key, val) { 
+            if (!window.adminTempValues) window.adminTempValues = {};
+            window.adminTempValues.upgrades = window.adminTempValues.upgrades || {};
+            window.adminTempValues.upgrades[key] = parseInt(val);
+        }
+        function adminUpdateSetting(key, val) { 
+            if (!window.adminTempValues) window.adminTempValues = {};
+            window.adminTempValues.settings = window.adminTempValues.settings || {};
+            window.adminTempValues.settings[key] = val;
+        }
+        function adminUpdateTrait(type, index) {
+            if (!window.adminTempValues) window.adminTempValues = {};
+            window.adminTempValues[type] = parseInt(index);
+        }
+        
+        function refreshUI() {
+            // Apply all stored admin changes
+            if (window.adminTempValues) {
+                // Apply direct state values
+                Object.keys(window.adminTempValues).forEach(key => {
+                    if (key === 'upgrades') {
+                        Object.assign(state.upgrades, window.adminTempValues[key]);
+                    } else if (key === 'settings') {
+                        Object.assign(state.settings, window.adminTempValues[key]);
+                    } else if (key === 'bl' || key === 'aff') {
+                        state[key + 'Id'] = window.adminTempValues[key];
+                    } else if (key !== 'upgrades' && key !== 'settings') {
+                        state[key] = window.adminTempValues[key];
+                        // Update qi needed when realm or stage changes
+                        if (key === 'realmIndex' || key === 'stage') {
+                            updateCurrentNeeded();
+                        }
+                    }
+                });
+                
+                // Clear temp values
+                window.adminTempValues = {};
+                
+                addLog("ADMIN: Changes applied successfully.", true);
+                updateUI();
+                applySettingsUI();
+                saveGame();
+            }
+        }
+        function updateCurrentNeeded() {
+            // Calculate base qi needed for current realm and stage
+            let baseNeeded = 100;
+            
+            // Apply realm multiplier (each realm increases requirement)
+            for (let i = 0; i < state.realmIndex; i++) {
+                baseNeeded *= 1.45;
+            }
+            
+            // Apply stage multiplier within current realm (each stage increases requirement)
+            for (let i = 1; i < state.stage; i++) {
+                baseNeeded *= 1.45;
+            }
+            
+            state.currentNeeded = Math.floor(baseNeeded);
+        }
+        function adminAddRP() {
+            let val = parseInt(document.getElementById('admin-rp-add').value);
+            state.rp += val; addLog(`ADMIN: Granted ${val} RP.`, true); updateUI();
+        }
+        function adminInstaRealm() { state.qi = state.currentNeeded; addLog("ADMIN: Force Breakthrough triggered.", true); }
+
+        function roll(table) {
+            let totalWeight = 0;
+            for (let item of table) {
+                totalWeight += (item.weight || 1);
+            }
+            
+            let r = Math.random() * totalWeight;
+            let cursor = 0;
+            for (let i = 0; i < table.length; i++) {
+                cursor += (table[i].weight || 1);
+                if (r < cursor) return table[i];
+            }
+            return table[table.length - 1];
+        }
+
+        function reincarnate(isFirstLoad = false) {
+            if(!isFirstLoad) {
+                let rpGained = calculateRP();
+                state.rp += rpGained;
+                if (state.years > 0) addLog(`Legacy claimed! +${formatNum(rpGained)} RP. Total: ${formatNum(state.rp)}`, true);
+                
+                // Remove player from leaderboard before reincarnating
+                if (USE_GOOGLE_SHEETS && state.playerName) {
+                    removeFromGoogleSheets(state.playerName);
+                }
+                removeFromLocalLeaderboard();
+                
+                // Set reincarnation time for leaderboard eligibility cooldown
+                localStorage.setItem(REINCARNATION_TIME_KEY, Date.now().toString());
+                
+                state.qi = 0; state.currentNeeded = 100; state.realmIndex = 0; state.stage = 1;
+                state.months = 0; state.years = 0; state.maxLife = 50; state.manualLv = 1; state.manualExp = 0;
+                state.blId = rollMixedSystem(bloodlines, state.upgrades.luck).id; state.rootLv = rollRootLevel(); state.affId = rollMixedSystem(affinities, state.upgrades.luck).id;
+                addLog(`${state.playerName} begins practicing ${affinities[state.affId].manual}.`, true);
+                addLog(`Awakened with Root Lv. ${state.rootLv}!`);
+                // Remove first life bonus after first reincarnation
+                if (state.isFirstLife) {
+                    state.isFirstLife = false;
+                }
+            }
+            updateUI(); saveGame();
+        }
+
+        function manualRebirth() {
+            showModal("Seek Reincarnation", "Abandon this life to claim your accumulated RP and begin a new cycle?", "Step into the river of Reincarnation", false, () => { reincarnate(); closeModal(); });
+        }
+
+        function formatTimeTaken(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 0) {
+                return `${days}d ${hours % 24}h ${minutes % 60}m ${seconds % 60}s`;
+            } else if (hours > 0) {
+                return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${seconds % 60}s`;
+            } else {
+                return `${seconds}s`;
+            }
+        }
+
+        function addLog(msg, imp = false) {
+            const l = document.getElementById('logs');
+            l.innerHTML = `<div style="${imp?'color:var(--text-main);font-weight:bold;':''}">> ${msg}</div>` + l.innerHTML;
+            if(l.children.length > 40) l.lastChild.remove();
+        }
+
+        function updateVisuals() {
+            const r = state.realmIndex;
+            const sprite = document.getElementById('char-sprite');
+            const wings = document.getElementById('evo-wings');
+            const aff = affinities[state.affId];
+
+            // 1. SILHOUETTE COLOR
+            if (r >= 50) sprite.style.backgroundColor = "var(--aff-purple)";
+            else if (r >= 30) sprite.style.backgroundColor = "var(--sect-cyan)";
+            else if (r >= 15) sprite.style.backgroundColor = "var(--bloodline-gold)";
+            else sprite.style.backgroundColor = "white";
+
+            // 2. WINGS FILTER
+            if (r >= 60) wings.style.filter = "brightness(0.5) sepia(1) hue-rotate(250deg) saturate(3)";
+            else if (r >= 45) wings.style.filter = "hue-rotate(180deg) brightness(1.5) drop-shadow(0 0 10px var(--sect-cyan))"; 
+            else if (r >= 30) wings.style.filter = "sepia(1) saturate(5) hue-rotate(10deg) brightness(1.2) drop-shadow(0 0 8px gold)";
+            else if (r >= 20) wings.style.filter = "brightness(1.1) drop-shadow(0 0 5px rgba(255,255,255,0.5))";
+            else wings.style.filter = "none";
+
+            // 3. TIERED ANIMATION LOGIC (Every 10 Realms)
+            const effects = {
+                burst: document.getElementById('evo-burst'),
+                lightning: document.getElementById('evo-lightning'),
+                fire: document.getElementById('evo-fire'),
+                void: document.getElementById('evo-void'),
+                particle: document.getElementById('evo-particle')
+            };
+
+            // Reset all special effects and animations
+            Object.values(effects).forEach(el => el.style.display = "none");
+            sprite.style.animation = "none";
+            sprite.style.filter = "none";
+
+            if (r >= 1 && r < 10) {
+                // TIER 1 (1-10): Light Burst matching affinity/realm color
+                effects.burst.style.display = "block";
+                document.documentElement.style.setProperty('--burst-color', aff.color || "#ffffff");
+            } 
+            else if (r >= 10 && r < 20) {
+                // TIER 2 (10-20): Lightning Effect
+                effects.lightning.style.display = "block";
+                sprite.style.filter = "drop-shadow(0 0 8px var(--sect-cyan))";
+            } 
+            else if (r >= 20 && r < 30) {
+                // TIER 3 (20-30): Eternal Flame
+                effects.fire.style.display = "block";
+                sprite.style.animation = "flameFlicker 2s infinite ease-in-out";
+            }
+            else if (r >= 30 && r < 40) {
+                // TIER 4 (30-40): Void Distortion
+                effects.void.style.display = "block";
+                sprite.style.filter = "invert(0.1) drop-shadow(0 0 10px var(--aff-purple))";
+            }
+            else if (r >= 40 && r < 50) {
+                // TIER 5 (40-50): Divine Orbits
+                effects.particle.style.display = "block";
+                effects.burst.style.display = "block";
+                document.documentElement.style.setProperty('--burst-color', "var(--admin-gold)");
+            }
+            else if (r >= 50 && r < 60) {
+                // TIER 6 (50-60): Cosmic Singularity
+                sprite.style.animation = "cosmicPulse 2s infinite alternate";
+                effects.void.style.display = "block";
+                effects.void.style.borderColor = "white";
+            }
+            else if (r >= 60) {
+                // TIER 7+ (60+): Beyond Everything (Combined Godhood)
+                effects.lightning.style.display = "block";
+                effects.particle.style.display = "block";
+                effects.void.style.display = "block";
+                sprite.style.filter = "brightness(2) drop-shadow(0 0 20px #fff)";
+            }
+
+            // Standard Visibility toggles
+            document.getElementById('evo-aura').classList.toggle('visible', r >= 4);
+            document.getElementById('evo-back-halo').classList.toggle('visible', r >= 10);
+            document.getElementById('evo-back-halo-2').classList.toggle('visible', r >= 15);
+            document.getElementById('evo-back-halo-3').classList.toggle('visible', r >= 20);
+            document.getElementById('evo-halo').classList.toggle('visible', r >= 10);
+            document.getElementById('evo-wings').classList.toggle('visible', r >= 20);
+            
+            // Dynamic wing scaling based on realm
+            if (r >= 20) {
+                const wingsElement = document.getElementById('evo-wings');
+                const wingElements = wingsElement.querySelectorAll('::before, ::after');
+                
+                // Calculate scaling factor (capped at realm 100)
+                const maxRealm = 100;
+                const cappedRealm = Math.min(r, maxRealm);
+                const scaleFactor = 1 + (cappedRealm - 20) * 0.01; // 1% increase per realm after 20
+                
+                // Calculate new dimensions
+                const baseWidth = 200;
+                const baseHeight = 40;
+                const newWidth = baseWidth * scaleFactor;
+                const newHeight = baseHeight * (1 + (cappedRealm - 20) * 0.02); // 2% height increase per realm
+                
+                // Apply scaling to wings
+                wingsElement.style.setProperty('--wing-width', `${newWidth}px`);
+                wingsElement.style.setProperty('--wing-height', `${newHeight}px`);
+                
+                // Update CSS variables for wing pseudo-elements
+                const styleSheet = document.styleSheets[0];
+                const rules = styleSheet.cssRules || styleSheet.rules;
+                
+                for (let i = 0; i < rules.length; i++) {
+                    const rule = rules[i];
+                    if (rule.selectorText && rule.selectorText.includes('.wings::before') || rule.selectorText && rule.selectorText.includes('.wings::after')) {
+                        if (rule.style.width) rule.style.width = `${newWidth}px`;
+                        if (rule.style.height) rule.style.height = `${newHeight}px`;
+                    }
+                }
+            }
+        }
+
+        function calculateBreakthroughTime() {
+            if (state.qi >= state.currentNeeded) {
+                return "Ready!";
+            }
+            
+            const qiNeeded = state.currentNeeded - state.qi;
+            // Game runs every 10ms, so 100 ticks = 1 second of real time
+            const qiPerRealSecond = 0.1 * getTotalQiMulti() * 100;
+            
+            if (qiPerRealSecond <= 0) {
+                return "Never";
+            }
+            
+            const secondsNeeded = qiNeeded / qiPerRealSecond;
+            
+            if (secondsNeeded < 60) {
+                return `${Math.ceil(secondsNeeded)}s`;
+            } else if (secondsNeeded < 3600) {
+                const minutes = Math.floor(secondsNeeded / 60);
+                const seconds = Math.ceil(secondsNeeded % 60);
+                return `${minutes}m ${seconds}s`;
+            } else if (secondsNeeded < 86400) {
+                const hours = Math.floor(secondsNeeded / 3600);
+                const minutes = Math.floor((secondsNeeded % 3600) / 60);
+                return `${hours}h ${minutes}m`;
+            } else {
+                const days = Math.floor(secondsNeeded / 86400);
+                const hours = Math.floor((secondsNeeded % 86400) / 3600);
+                return `${days}d ${hours}h`;
+            }
+        }
+
+        function updateUI() {
+            const bl = bloodlines[state.blId];
+            const aff = affinities[state.affId];
+            const combat = getCombatStats();
+            document.getElementById('total-multi-display').innerText = formatStatusNum(getTotalQiMulti()) + "x";
+            document.getElementById('hp-display').innerText = formatNum(combat.health);
+            document.getElementById('str-display').innerText = formatNum(combat.strength);
+            document.getElementById('rp-display').innerText = formatNum(state.rp);
+            document.getElementById('pending-rp').innerText = formatNum(calculateRP());
+            
+            document.getElementById('rpMulti-display').innerText = formatStatusNum(Math.pow(UPGRADE_DATA.rpMulti.power, state.upgrades.rpMulti)) + "x";
+            document.getElementById('rpMulti-lv').innerText = state.upgrades.rpMulti;
+            document.getElementById('rpMulti-cost').innerText = formatNum(getUpgradeCost('rpMulti')) + " RP";
+
+            document.getElementById('ess-display').innerText = formatStatusNum(Math.pow(UPGRADE_DATA.essence.power, state.upgrades.essence)) + "x";
+            document.getElementById('ess-lv').innerText = state.upgrades.essence;
+            document.getElementById('ess-cost').innerText = formatNum(getUpgradeCost('essence')) + " RP";
+            document.getElementById('luck-display').innerText = formatStatusNum(Math.pow(UPGRADE_DATA.luck.power, state.upgrades.luck)) + "x";
+            document.getElementById('luck-lv').innerText = state.upgrades.luck;
+            document.getElementById('luck-cost').innerText = formatNum(getUpgradeCost('luck')) + " RP";
+            document.getElementById('root-luck-display').innerText = formatStatusNum(Math.pow(UPGRADE_DATA.rootLuck.power, state.upgrades.rootLuck)) + "x";
+            document.getElementById('root-luck-lv').innerText = state.upgrades.rootLuck;
+            document.getElementById('root-luck-cost').innerText = formatNum(getUpgradeCost('rootLuck')) + " RP";
+            document.getElementById('man-exp-mult').innerText = formatStatusNum(Math.pow(UPGRADE_DATA.manual.power, state.upgrades.manual)) + "x";
+            document.getElementById('man-up-lv').innerText = state.upgrades.manual;
+            document.getElementById('man-up-cost').innerText = formatNum(getUpgradeCost('manual')) + " RP";
+            document.getElementById('char-name-ui').value = (state.playerName === "Unnamed Soul") ? "" : state.playerName;
+            document.getElementById('stats-name').innerText = state.playerName;
+            document.getElementById('qi-amt').innerText = formatNum(state.qi);
+            document.getElementById('qi-needed').innerText = formatNum(state.currentNeeded);
+            document.getElementById('breakthrough-timer').innerText = calculateBreakthroughTime();
+            document.getElementById('realm-display').innerText = `${majorRealms[state.realmIndex]} (St. ${state.stage})`;
+            document.getElementById('qi-progress').style.width = Math.min(100, (state.qi/state.currentNeeded*100)) + "%";
+            document.getElementById('age-y').innerText = state.years;
+            document.getElementById('age-m').innerText = state.months;
+            document.getElementById('max-life').innerText = formatNum(state.maxLife);
+            document.getElementById('man-name').innerText = aff.manual;
+            document.getElementById('man-lv').innerText = state.manualLv;
+            document.getElementById('man-progress').style.width = state.manualExp + "%";
+            document.getElementById('man-mult').innerText = formatStatusNum(Math.pow(aff.basePower, state.manualLv)) + "x";
+            document.getElementById('bl-name').innerText = bl.name;
+            document.getElementById('bl-multi').innerText = formatStatusNum(bl.mult) + "x";
+            document.getElementById('root-name').innerText = "Root Lv. " + state.rootLv;
+            document.getElementById('root-multi').innerText = formatStatusNum(getRootPower(state.rootLv)) + "x";
+            document.getElementById('aff-name').innerText = aff.name;
+            document.getElementById('aff-multi').innerText = formatStatusNum(aff.mult) + "x";
+            document.getElementById('sect-name-display').innerText = aff.sectName;
+            document.getElementById('sect-tier-display').innerText = getRootSectTier(state.rootLv);
+            document.getElementById('sect-multi-display').innerText = formatStatusNum(getSectMulti(state.realmIndex)) + "x";
+            document.getElementById('sect-rank-display').innerText = getSectRank(state.realmIndex);
+            if (state.isAdmin) document.getElementById('admin-toggle-btn').style.display = 'block';
+            
+            // Update auth button text
+            const authBtn = document.getElementById('auth-btn-text');
+            if (authBtn) {
+                authBtn.innerText = state.isLoggedIn ? 'Sign Out' : 'Sign In';
+            }
+            
+            // Update logout button visibility
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.style.display = state.isLoggedIn ? 'block' : 'none';
+            }
+            
+            // Update settings auth buttons visibility and status
+            const signupBtn = document.getElementById('signup-settings-btn');
+            const loginBtn = document.getElementById('login-settings-btn');
+            const authStatusText = document.getElementById('auth-status-text');
+            
+            if (signupBtn && loginBtn && authStatusText) {
+                if (state.isLoggedIn) {
+                    signupBtn.style.display = 'none';
+                    loginBtn.style.display = 'none';
+                    authStatusText.innerText = `Logged in as ${state.currentUser?.username || 'Unknown'}`;
+                    authStatusText.style.color = 'var(--accent-green)';
+                } else {
+                    signupBtn.style.display = 'block';
+                    loginBtn.style.display = 'block';
+                    authStatusText.innerText = 'Playing as guest';
+                    authStatusText.style.color = 'var(--text-dim)';
+                }
+            }
+            
+            updateVisuals();
+        }
+        // Background cultivation system
+        let lastActiveTime = Date.now();
+        const BACKGROUND_CULTIVATION_KEY = "EternalPath_LastActive";
+        const TIME_VERIFICATION_KEY = "EternalPath_TimeVerification";
+        
+        function saveLastActiveTime() {
+            localStorage.setItem(BACKGROUND_CULTIVATION_KEY, Date.now().toString());
+            // Store current time for verification when user returns
+            localStorage.setItem(TIME_VERIFICATION_KEY, Date.now().toString());
+        }
+        
+        function loadLastActiveTime() {
+            const saved = localStorage.getItem(BACKGROUND_CULTIVATION_KEY);
+            return saved ? parseInt(saved) : Date.now();
+        }
+        
+        function loadVerificationTime() {
+            const saved = localStorage.getItem(TIME_VERIFICATION_KEY);
+            return saved ? parseInt(saved) : Date.now();
+        }
+        
+        function checkTimeVerification() {
+            const verificationTime = loadVerificationTime();
+            const actualTime = Date.now();
+            const timeDiff = actualTime - verificationTime;
+            
+            // Only check if more than 1 minute has passed (to avoid immediate spam)
+            if (timeDiff > 60000) {
+                const minutesPassed = Math.floor(timeDiff / 60000);
+                const hoursPassed = Math.floor(minutesPassed / 60);
+                const daysPassed = Math.floor(hoursPassed / 24);
+                
+                let timeMessage = "Time verification: You were away for ";
+                if (daysPassed > 0) {
+                    timeMessage += `${daysPassed} day${daysPassed > 1 ? 's' : ''}, `;
+                }
+                if (hoursPassed > 0) {
+                    timeMessage += `${hoursPassed % 24} hour${(hoursPassed % 24) > 1 ? 's' : ''}, `;
+                }
+                timeMessage += `${minutesPassed % 60} minute${(minutesPassed % 60) > 1 ? 's' : ''}.`;
+                
+                addLog(timeMessage, true);
+            }
+            
+            // Update verification time for next check
+            localStorage.setItem(TIME_VERIFICATION_KEY, actualTime.toString());
+        }
+        
+        function processBackgroundCultivation() {
+            const currentTime = Date.now();
+            const lastActive = loadLastActiveTime();
+            const actualTimeElapsed = currentTime - lastActive; // milliseconds
+            let timeElapsed = actualTimeElapsed;
+            
+            // Limit background cultivation to maximum 1 hour
+            const maxBackgroundTime = 60 * 60 * 1000; // 1 hour in milliseconds
+            if (timeElapsed > maxBackgroundTime) {
+                timeElapsed = maxBackgroundTime;
+            }
+            
+            if (actualTimeElapsed > 1000) { // Only process if more than 1 second has passed
+                const secondsElapsed = timeElapsed / 1000;
+                const ticksToProcess = Math.floor(secondsElapsed * 100); // Game runs every 10ms = 100 ticks per second
+                
+                if (ticksToProcess > 0) {
+                    let deathCount = 0;
+                    let totalRPGained = 0;
+                    
+                    // Process background cultivation
+                    for (let i = 0; i < ticksToProcess; i++) {
+                        state.qi += (0.1 * getTotalQiMulti());
+                        
+                        // Manual training (no level cap)
+                        let manualMultiplier = Math.pow(affinities[state.affId].basePower, state.manualLv);
+                        let expRequired = (manualMultiplier * 100) * (state.manualLv * 5) * Math.pow(2, state.manualLv - 1);
+                        let expGain = (0.1 * Math.pow(UPGRADE_DATA.manual.power, state.upgrades.manual)) / expRequired * 100;
+                        expGain *= 0.5; // 50% less experience while AFK
+                        expGain *= getAgeExpMultiplier(); // Apply age-based multiplier
+                        state.manualExp += expGain;
+                        if(state.manualExp >= 100) { state.manualExp = 0; state.manualLv++; }
+                        
+                        if (state.qi >= state.currentNeeded) {
+                            state.qi = 0; state.stage++; state.maxLife *= 1.05;
+                            if (state.stage > 9) {
+                                state.stage = 1; state.realmIndex++; state.maxLife *= 1.2;
+                                if (state.realmIndex >= majorRealms.length) state.realmIndex = majorRealms.length - 1;
+                                saveToLeaderboard();
+                            }
+                            state.currentNeeded *= 1.45; 
+                            state.breakthroughStartTime = Date.now(); // Reset timer for next breakthrough
+                        }
+                        
+                        state.tickCount++;
+                        // Apply age-based aging speed multiplier (1.5x scaling per 10x increase)
+                        let ageSpeedMultiplier = 1;
+                        if (state.years >= 1) {
+                            if (state.years === 1) {
+                                ageSpeedMultiplier = 1; // Edge case: log10(1) = 0, handle separately
+                            } else {
+                                const logAge = Math.log10(state.years);
+                                const nextMilestone = Math.ceil(logAge);
+                                const currentMilestone = Math.floor(logAge);
+                                
+                                // Handle exact power-of-10 ages (like 10, 100, 1000)
+                                if (logAge === currentMilestone && logAge === nextMilestone) {
+                                    ageSpeedMultiplier = Math.pow(1.5, currentMilestone); // Full milestone bonus
+                                } else {
+                                    // Calculate percentage progress toward next milestone
+                                    const progress = (logAge - currentMilestone) / (nextMilestone - currentMilestone);
+                                    
+                                    // Base multiplier is current milestone, add percentage of the next step
+                                    const baseMultiplier = Math.pow(1.5, currentMilestone);
+                                    const nextStepMultiplier = Math.pow(1.5, nextMilestone) - baseMultiplier;
+                                    
+                                    ageSpeedMultiplier = baseMultiplier + (nextStepMultiplier * progress);
+                                }
+                            }
+                        }
+                        
+                        // Reduce ticks needed for older ages
+                        let ticksNeeded = Math.max(1, Math.floor(20 / ageSpeedMultiplier));
+                        if (state.tickCount >= ticksNeeded) {
+                            state.months++;
+                            if(state.months >= 12) { 
+                                state.months -= 12; 
+                                state.years++; 
+                                
+                                // Check for death - but only allow one death during background cultivation
+                                if (state.years >= state.maxLife && deathCount === 0) {
+                                    let rpGained = calculateRP();
+                                    totalRPGained += rpGained;
+                                    deathCount++;
+                                    
+                                    // Reset for reincarnation
+                                    state.qi = 0; state.currentNeeded = 100; state.realmIndex = 0; state.stage = 1;
+                                    state.months = 0; state.years = 0; state.maxLife = 50; state.manualLv = 1; state.manualExp = 0;
+                                    state.blId = rollMixedSystem(bloodlines, state.upgrades.luck).id; state.rootLv = rollRootLevel(); state.affId = rollMixedSystem(affinities, state.upgrades.luck).id;
+                                    
+                                    // Remove first life bonus after first reincarnation
+                                    if (state.isFirstLife) {
+                                        state.isFirstLife = false;
+                                    }
+                                    
+                                    // Stop further cultivation after death
+                                    break;
+                                }
+                            }
+                            state.tickCount = 0;
+                        }
+                    }
+                    
+                    // Add RP gained from death
+                    if (totalRPGained > 0) {
+                        state.rp += totalRPGained;
+                    }
+                    
+                    // Calculate ACTUAL time for display (not the limited time)
+                    const actualSecondsElapsed = actualTimeElapsed / 1000;
+                    const hours = Math.floor(actualSecondsElapsed / 3600);
+                    const minutes = Math.floor((actualSecondsElapsed % 3600) / 60);
+                    const seconds = Math.floor(actualSecondsElapsed % 60);
+                    
+                    // Show if cultivation was limited
+                    if (actualTimeElapsed > maxBackgroundTime) {
+                        if (hours > 0) {
+                            addLog(`Background cultivation: ${hours}h ${minutes}m ${seconds}s passed while you were away. (Limited to 1h cultivation)`, true);
+                        } else if (minutes > 0) {
+                            addLog(`Background cultivation: ${minutes}m ${seconds}s passed while you were away. (Limited to 1h cultivation)`, true);
+                        } else {
+                            addLog(`Background cultivation: ${seconds}s passed while you were away. (Limited to 1h cultivation)`, true);
+                        }
+                    } else {
+                        if (hours > 0) {
+                            addLog(`Background cultivation: ${hours}h ${minutes}m ${seconds}s passed while you were away.`, true);
+                        } else if (minutes > 0) {
+                            addLog(`Background cultivation: ${minutes}m ${seconds}s passed while you were away.`, true);
+                        } else {
+                            addLog(`Background cultivation: ${seconds}s passed while you were away.`, true);
+                        }
+                    }
+                    
+                    // Show death notification if died during background cultivation
+                    if (deathCount > 0) {
+                        addLog(`💀 You passed away during cultivation and reincarnated. +${formatNum(totalRPGained)} RP claimed.`, true);
+                    }
+                }
+            } else {
+                // Still show time if less than 1 second but more than 0
+                if (actualTimeElapsed > 0) {
+                    const actualSecondsElapsed = actualTimeElapsed / 1000;
+                    const seconds = Math.floor(actualSecondsElapsed % 60);
+                    if (seconds > 0) {
+                        addLog(`Background cultivation: ${seconds}s passed while you were away.`, true);
+                    }
+                }
+            }
+            
+            // Update last active time to current time (not the calculated time)
+            lastActiveTime = Date.now();
+            saveLastActiveTime();
+        }
+        
+        // Page visibility API to detect when user returns
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // User returned to the page
+                checkTimeVerification(); // Check time first
+                processBackgroundCultivation();
+                updateUI();
+                saveGame();
+            }
+        });
+        
+        // Window focus event as backup
+        window.addEventListener('focus', () => {
+            if (!document.hidden) {
+                // User returned to the page
+                checkTimeVerification(); // Check time first
+                processBackgroundCultivation();
+                updateUI();
+                saveGame();
+            }
+        });
+        
+        // Save last active time periodically
+        setInterval(saveLastActiveTime, 5000);
+
+        setInterval(() => {
+            state.qi += (0.1 * getTotalQiMulti());
+            // Manual training (no level cap)
+            let manualMultiplier = Math.pow(affinities[state.affId].basePower, state.manualLv);
+            let expRequired = (manualMultiplier * 100) * (state.manualLv * 5) * Math.pow(2, state.manualLv - 1);
+            let expGain = (0.1 * Math.pow(UPGRADE_DATA.manual.power, state.upgrades.manual)) / expRequired * 100;
+            expGain *= getAgeExpMultiplier(); // Apply age-based multiplier
+            state.manualExp += expGain;
+            if(state.manualExp >= 100) { state.manualExp = 0; state.manualLv++; addLog(`Manual mastered! (Lv. ${state.manualLv})`); }
+            if (state.qi >= state.currentNeeded) {
+                const timeTaken = Date.now() - state.breakthroughStartTime;
+                const timeStr = formatTimeTaken(timeTaken);
+                state.qi = 0; state.stage++; state.maxLife *= 1.05;
+                if (state.stage > 9) {
+                    state.stage = 1; state.realmIndex++; state.maxLife *= 1.2;
+                    if (state.realmIndex >= majorRealms.length) state.realmIndex = majorRealms.length - 1;
+                    const newRealm = majorRealms[state.realmIndex];
+                    addLog(`ASCENSION: ${newRealm} reached! (${state.realmIndex}) (${timeStr})`, true);
+                    // Save to leaderboard when reaching new realm
+                    saveToLeaderboard();
+                    
+                    // Check if player might be in top 3 and refresh leaderboard immediately
+                    checkAndUpdateLeaderboard();
+                } else { 
+                    if (!state.settings.disableMinorBreakthroughMessages) {
+                        addLog(`Advanced to Stage ${state.stage}. (${timeStr})`);
+                    }
+                    // Check if player might be in top 3 and refresh leaderboard immediately
+                    checkAndUpdateLeaderboard();
+                }
+                state.currentNeeded *= 1.45; 
+                state.breakthroughStartTime = Date.now(); // Reset timer for next breakthrough
+            }
+            state.tickCount++;
+            // Apply age-based aging speed multiplier (1.5x scaling per 10x increase)
+            let ageSpeedMultiplier = 1;
+            if (state.years >= 1) {
+                if (state.years === 1) {
+                    ageSpeedMultiplier = 1; // Edge case: log10(1) = 0, handle separately
+                } else {
+                    const logAge = Math.log10(state.years);
+                    const nextMilestone = Math.ceil(logAge);
+                    const currentMilestone = Math.floor(logAge);
+                    
+                    // Handle exact power-of-10 ages (like 10, 100, 1000)
+                    if (logAge === currentMilestone && logAge === nextMilestone) {
+                        ageSpeedMultiplier = Math.pow(1.5, currentMilestone); // Full milestone bonus
+                    } else {
+                        // Calculate percentage progress toward next milestone
+                        const progress = (logAge - currentMilestone) / (nextMilestone - currentMilestone);
+                        
+                        // Base multiplier is current milestone, add percentage of the next step
+                        const baseMultiplier = Math.pow(1.5, currentMilestone);
+                        const nextStepMultiplier = Math.pow(1.5, nextMilestone) - baseMultiplier;
+                        
+                        ageSpeedMultiplier = baseMultiplier + (nextStepMultiplier * progress);
+                    }
+                }
+            }
+            
+            // Reduce ticks needed for older ages
+            let ticksNeeded = Math.max(1, Math.floor(20 / ageSpeedMultiplier));
+            if (state.tickCount >= ticksNeeded) {
+                state.months++;
+                if(state.months >= 12) { 
+                    state.months -= 12; 
+                    state.years++; 
+                    if (state.years >= state.maxLife) { 
+                        addLog(`${state.playerName} returned to earth at age ${state.years}.`, true); 
+                        reincarnate(); 
+                    }
+                }
+                state.tickCount = 0;
+            }
+            updateUI();
+        }, 10);
+
+        setInterval(saveGame, 5000);
+        setInterval(saveToLeaderboard, 60000); // Update leaderboard every minute
+        
+        // Refresh leaderboard every 30 seconds to detect when players leave
+        setInterval(() => {
+            if (USE_GOOGLE_SHEETS) {
+                refreshLeaderboardUI();
+            } else {
+                const leaderboard = getLeaderboard();
+                displayLeaderboard(leaderboard, false);
+            }
+        }, 30000); // Check every 30 seconds
+        
+        // Enlightenment system - 5% chance per minute for 5x Qi multiplier
+        setInterval(() => {
+            // Check if currently enlightened
+            if (state.enlightened && Date.now() >= state.enlightenmentEndTime) {
+                state.enlightened = false;
+            }
+            
+            // 5% chance to enter enlightenment if not already enlightened
+            if (!state.enlightened && Math.random() < 0.05) {
+                state.enlightened = true;
+                state.enlightenmentEndTime = Date.now() + 30000; // 30 seconds duration
+                addLog("You have entered an ENLIGHTENED state! 5x Qi multiplier for 30 seconds!", true);
+            }
+        }, 60000); // Check every minute
+        
+        checkCodeChange(); // Check for code changes and reset leaderboard if needed
+        checkAuthStatus(); // Check if user is already logged in
+        loadGame();
+        if (state.isAdmin) initAdminPanel();
+        if (localStorage.getItem(SAVE_KEY) === null) { reincarnate(false); } else { updateUI(); }
+        
+        // Initialize background cultivation system
+        lastActiveTime = loadLastActiveTime();
+        saveLastActiveTime();
+        
+        // Check for top 1 halo status on game load
+        setTimeout(() => {
+            const leaderboard = getLeaderboard();
+            checkAndApplyTop1Halo(leaderboard);
+        }, 100);
+    </script>
+</body>
+</html> 
