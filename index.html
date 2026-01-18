@@ -1253,6 +1253,14 @@
             clearInputErrors();
         }
         
+        // Set up modal button click handler
+        document.getElementById('modal-confirm-btn').onclick = function() { 
+            if (modalAction) {
+                modalAction(); 
+                closeModal();
+            }
+        };
+        
         function clearInputErrors() {
             // Remove error styling from all input fields
             const inputs = document.querySelectorAll('input');
