@@ -2953,7 +2953,30 @@
         checkAuthStatus(); // Check if user is already logged in
         loadGame();
         if (state.isAdmin) initAdminPanel();
-        if (localStorage.getItem(SAVE_KEY) === null) { reincarnate(false); } else { updateUI(); }
+        if (localStorage.getItem(SAVE_KEY) === null) { 
+            try {
+                reincarnate(false); 
+            } catch (error) {
+                console.error('Reincarnation error:', error);
+                // Fallback initialization
+                state.qi = 0; 
+                state.currentNeeded = 100; 
+                state.realmIndex = 0; 
+                state.stage = 1;
+                state.months = 0; 
+                state.years = 0; 
+                state.maxLife = 50; 
+                state.manualLv = 1; 
+                state.manualExp = 0;
+                state.blId = rollMixedSystem(bloodlines, state.upgrades.luck).id; 
+                state.rootLv = rollRootLevel(); 
+                state.affId = rollMixedSystem(affinities, state.upgrades.luck).id;
+                updateUI(); 
+                saveGame();
+            }
+        } else { 
+            updateUI(); 
+        }
         
         // Initialize background cultivation system
         lastActiveTime = loadLastActiveTime();
