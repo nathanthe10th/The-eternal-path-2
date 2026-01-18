@@ -1381,6 +1381,42 @@
         const DATABASE_API_URL = "https://script.google.com/macros/s/AKfycbw7sSaSv_l-ojOGx044rUPa0B552jbChdBjhs_LhbNMQ8eit5kQkS1kV8FXqvvUMfED/exec"; // Database script for user management
         const LEADERBOARD_API_URL = "https://script.google.com/macros/s/AKfycby55PHwFpTwYqGYfrw-y82vQAJ3h3fcZM9DJ_1dCZFIm5sg50a1wRAFeYb98i81dcZCkQ/exec"; // Leaderboard script
         const USE_GOOGLE_SHEETS = true; // Toggle to enable/disable Google Sheets
+        
+        // CORS-friendly fetch wrapper
+        async function corsFetch(url, options = {}) {
+            const separator = url.includes('?') ? '&' : '?';
+            const urlWithTimestamp = `${url}${separator}_t=${Date.now()}`;
+            
+            const defaultOptions = {
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            };
+            
+            const fetchOptions = { ...defaultOptions, ...options };
+            
+            try {
+                const response = await fetch(urlWithTimestamp, fetchOptions);
+                if (response.ok) {
+                    return response;
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            } catch (error) {
+                console.warn('CORS fetch failed, trying GET method:', error.message);
+                
+                // Fallback to GET with URL parameters
+                if (fetchOptions.method === 'POST' && fetchOptions.body) {
+                    const params = new URLSearchParams(fetchOptions.body).toString();
+                    const fallbackUrl = `${urlWithTimestamp}${separator}${params}`;
+                    return fetch(fallbackUrl, { ...fetchOptions, method: 'GET', body: undefined });
+                }
+                
+                throw error;
+            }
+        }
 
         function getOrCreatePlayerID() {
             let playerID = localStorage.getItem(PLAYER_ID_KEY);
