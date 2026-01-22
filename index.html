@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>The Eternal Path</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico.png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-dark: #050505;
@@ -466,21 +465,8 @@
             <div id="modal-title" class="modal-title">Ascension</div>
             <div id="modal-text" class="modal-text">Are you ready to shed your mortal coil?</div>
             <div class="modal-btns">
-                <button class="modal-btn cancel" onclick="closeModal()">Meditate Further</button>
+                <button class="modal-btn cancel" id="modal-cancel-btn" onclick="closeModal()">Meditate Further</button>
                 <button id="modal-confirm-btn" class="modal-btn">Proceed</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Auth Modal -->
-    <div id="auth-modal" class="modal-overlay">
-        <div class="modal-content" style="width: 400px;">
-            <div class="modal-title">Welcome to The Eternal Path</div>
-            <div class="modal-text">Choose your journey through cultivation:</div>
-            <div class="modal-btns" style="flex-direction: column; gap: 15px;">
-                <button class="modal-btn" onclick="showSignupModal()" style="background: var(--accent-green); border-color: var(--accent-green);">Sign Up - Create Account</button>
-                <button class="modal-btn" onclick="showLoginModal()" style="background: var(--root-blue); border-color: var(--root-blue);">Log In - Existing Account</button>
-                <button class="modal-btn cancel" onclick="stayAsGuest()">Stay as Guest - Local Save Only</button>
             </div>
         </div>
     </div>
@@ -488,7 +474,7 @@
     <!-- Login Modal -->
     <div id="login-modal" class="modal-overlay">
         <div class="modal-content" style="width: 400px;">
-            <div class="modal-title">The Eternal Path</div>
+            <div class="modal-title">Enter the Eternal Path</div>
             <div style="margin-bottom: 20px;">
                 <input type="text" id="login-username" placeholder="Username" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
                 <input type="password" id="login-password" placeholder="Password" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
@@ -506,14 +492,14 @@
     <!-- Signup Modal -->
     <div id="signup-modal" class="modal-overlay">
         <div class="modal-content" style="width: 400px;">
-            <div class="modal-title">The Eternal Path</div>
+            <div class="modal-title">Join the Eternal Path</div>
             <div style="margin-bottom: 20px;">
                 <input type="text" id="signup-username" placeholder="Choose Username" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
                 <input type="password" id="signup-password" placeholder="Choose Password" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
                 <input type="password" id="signup-confirm-password" placeholder="Confirm Password" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
                 <input type="email" id="signup-email" placeholder="Email (optional)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
                 <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 15px;">
-                    Already have an account? <a href="#" onclick="showLoginModal()" style="color: var(--accent-green);">Log in</a>
+                    Don&apos;t have an account? <a href="#" onclick="showLoginModal()" style="color: var(--accent-green);">Log in</a>
                 </div>
             </div>
             <div class="modal-btns">
@@ -528,6 +514,7 @@
             <button class="tab-btn active" onclick="switchTab('tab-status', event)">Status</button>
             <button class="tab-btn" onclick="switchTab('tab-rp', event)">RP Shop</button>
             <button class="tab-btn" onclick="switchTab('tab-leaderboard', event)">Leaderboard</button>
+            <button class="tab-btn" onclick="switchTab('tab-chat', event)">Chat</button>
             <button class="tab-btn" onclick="switchTab('tab-settings', event)">Settings</button>
         </div>
 
@@ -705,14 +692,38 @@
             </div>
 
             <div class="sidebar-header">Data Management</div>
+            <button class="admin-btn" style="margin-top: 5px; border-color: var(--accent-green); color: var(--accent-green);" onclick="exportSave()">Export Save File</button>
+            <button class="admin-btn" style="margin-top: 5px; border-color: var(--root-blue); color: var(--root-blue);" onclick="triggerImportSave()">Import Save File</button>
             <button class="admin-btn" style="margin-top: 5px; border-color: #444; color: #666;" onclick="hardReset()">Hard Reset Game</button>
             
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
                 <div class="sidebar-header" style="margin-bottom: 10px;">Account Management</div>
-                <button class="admin-btn" style="width: 100%; margin-bottom: 5px; border-color: var(--accent-green); color: var(--accent-green);" onclick="showSignupModal()" id="signup-settings-btn">Sign Up</button>
-                <button class="admin-btn" style="width: 100%; margin-bottom: 5px; border-color: var(--root-blue); color: var(--root-blue);" onclick="showLoginModal()" id="login-settings-btn">Log In</button>
                 <button class="admin-btn" style="width: 100%; margin-bottom: 5px; border-color: var(--danger-red); color: var(--danger-red);" onclick="logout()" id="logout-btn" style="display: none;">Sign Out</button>
-                <div style="font-size: 0.6rem; color: var(--text-dim); margin-top: 10px;" id="auth-status-text">Playing as guest</div>
+            </div>
+        </div>
+        <div id="tab-chat" class="tab-content">
+            <div class="sidebar-header">Google Sheets Chat</div>
+            <div class="roll-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <select id="chat-room-select" style="width: 100%; padding: 8px; background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; font-family: inherit; font-size: 0.7rem;">
+                            <option value="general 1">General 1</option>
+                            <option value="general 2">General 2</option>
+                            <option value="general 3">General 3</option>
+                            <option value="general 4">General 4</option>
+                            <option value="general 5">General 5</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="chat-messages" style="flex-grow: 1; min-height: 200px; max-height: 300px; overflow-y: auto; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 4px;">
+                    <div style="color: var(--text-dim); text-align: center;">Loading messages...</div>
+                </div>
+            </div>
+            
+            <div class="roll-card">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; padding: 8px; background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; font-family: inherit; font-size: 0.7rem;">
+                    <button id="chat-send" style="background: var(--accent-green); color: var(--bg-dark); border: none; padding: 8px 15px; border-radius: 3px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.7rem; transition: all 0.2s;">Send</button>
+                </div>
             </div>
         </div>
 
@@ -1233,87 +1244,25 @@
             if (!state.settings.showVisuals) document.body.classList.add('hide-visuals');
         }
 
-        function showModal(title, text, confirmLabel, isDanger, action) {
+        function showModal(title, text, confirmLabel, isDanger, action, cancelLabel = "Meditate Further") {
             const modal = document.getElementById('custom-modal');
             const box = document.getElementById('modal-box');
             const confirmBtn = document.getElementById('modal-confirm-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-text').innerText = text;
             confirmBtn.innerText = confirmLabel;
+            cancelBtn.innerText = cancelLabel;
             box.style.borderColor = isDanger ? 'var(--danger-red)' : 'var(--bloodline-gold)';
             confirmBtn.className = isDanger ? 'modal-btn confirm-red' : 'modal-btn';
             modal.style.display = 'flex';
             modalAction = action;
         }
 
-        function closeModal() { 
-            document.getElementById('custom-modal').style.display = 'none'; 
-            modalAction = null; 
-            // Clear any error styling
-            clearInputErrors();
-        }
-        
-        // Set up modal button click handler
-        document.getElementById('modal-confirm-btn').onclick = function() { 
-            if (modalAction) {
-                modalAction(); 
-                closeModal();
-            }
-        };
-        
-        function clearInputErrors() {
-            // Remove error styling from all input fields
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.style.borderColor = '';
-                input.style.boxShadow = '';
-            });
-        }
-        
-        function highlightInputError(inputId) {
-            const input = document.getElementById(inputId);
-            if (input) {
-                input.style.borderColor = 'var(--danger-red)';
-                input.style.boxShadow = '0 0 5px rgba(220, 53, 69, 0.3)';
-            }
-        }
+        function closeModal() { document.getElementById('custom-modal').style.display = 'none'; modalAction = null; }
+        document.getElementById('modal-confirm-btn').onclick = function() { if (modalAction) modalAction(); };
 
-        function saveGame() { 
-            // Always save to localStorage first
-            localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-            
-            // If logged in, also save to Google Sheets
-            if (state.isLoggedIn && state.authToken && USE_GOOGLE_SHEETS) {
-                saveToGoogleSheetsUserData();
-            }
-        }
-
-        async function loadFromGoogleSheetsUserData(token) {
-            if (!USE_GOOGLE_SHEETS || !DATABASE_API_URL || !token) return null;
-            
-            try {
-                const response = await fetch(DATABASE_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'loadGameData',
-                        token: token
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success && result.gameData) {
-                    return result.gameData;
-                }
-            } catch (error) {
-                console.log('Failed to load game data from Google Sheets');
-            }
-            
-            return null;
-        }
+        function saveGame() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
 
         function loadGame() {
             const saved = localStorage.getItem(SAVE_KEY);
@@ -1377,6 +1326,151 @@
             });
         }
 
+        // Encryption/Decryption functions for save files
+        function encryptSaveData(data) {
+            // Simple XOR encryption with a rotating key
+            const key = "EternalPath_Secret_Key_2024_Verified";
+            let encrypted = "";
+            for (let i = 0; i < data.length; i++) {
+                encrypted += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            }
+            // Convert to base64 for file storage
+            return btoa(encrypted);
+        }
+
+        function decryptSaveData(encryptedData) {
+            try {
+                // Convert from base64
+                const encrypted = atob(encryptedData);
+                const key = "EternalPath_Secret_Key_2024_Verified";
+                let decrypted = "";
+                for (let i = 0; i < encrypted.length; i++) {
+                    decrypted += String.fromCharCode(encrypted.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+                }
+                return decrypted;
+            } catch (e) {
+                throw new Error("Invalid save file format");
+            }
+        }
+
+        // Export save function
+        function exportSave() {
+            try {
+                // Create a copy of the current state
+                const saveData = { ...state };
+                
+                // Add metadata
+                saveData._exported = true;
+                saveData._exportTime = new Date().toISOString();
+                saveData._version = "1.0";
+                
+                // Convert to JSON and encrypt
+                const jsonData = JSON.stringify(saveData);
+                const encryptedData = encryptSaveData(jsonData);
+                
+                // Create file and trigger download
+                const blob = new Blob([encryptedData], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `eternal_path_save_${state.playerName || 'unnamed'}_${new Date().getTime()}.eternal`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                addLog("Save file exported successfully!", true);
+            } catch (error) {
+                addLog("Failed to export save file: " + error.message, true);
+            }
+        }
+
+        // Import save function
+        function importSave(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.name.endsWith('.eternal')) {
+                addLog("Invalid file type. Please select a .eternal save file.", true);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const encryptedData = e.target.result;
+                    const decryptedData = decryptSaveData(encryptedData);
+                    const importedState = JSON.parse(decryptedData);
+                    
+                    // Validate the imported data
+                    if (!importedState.playerName && !importedState.qi !== undefined) {
+                        throw new Error("Invalid save data structure");
+                    }
+                    
+                    // Show file selection modal with import button
+                    showModal("Import Save", 
+                        `File: ${file.name}\nPlayer: ${importedState.playerName || 'Unknown'}\nRealm: ${importedState.realm || 'Unknown'}\n\nThis will overwrite your current progress.`, 
+                        "Import Save", true, () => {
+                            // Remove current player from leaderboard before importing
+                            if (state.playerName) {
+                                removeFromLocalLeaderboard();
+                                if (USE_GOOGLE_SHEETS) {
+                                    removeFromGoogleSheets(state.playerName);
+                                }
+                            }
+                            
+                            // Import the state (excluding metadata)
+                            const metadataKeys = ['_exported', '_exportTime', '_version'];
+                            metadataKeys.forEach(key => delete importedState[key]);
+                            
+                            state = { ...state, ...importedState };
+                            
+                            // Save and update
+                            saveGame();
+                            updateUI();
+                            applySettingsUI();
+                            
+                            addLog(`Save file imported successfully! Welcome back, ${state.playerName || 'Cultivator'}!`, true);
+                            
+                            // Update leaderboard with new data
+                            saveToLeaderboard();
+                        }, "Cancel"
+                    );
+                } catch (error) {
+                    addLog("Failed to import save file: " + error.message, true);
+                }
+            };
+            
+            reader.readAsText(file);
+            // Clear the file input
+            event.target.value = '';
+        }
+
+        function triggerImportSave() {
+            // Remove old file input if it exists
+            const oldInput = document.getElementById('import-file-input');
+            if (oldInput) {
+                oldInput.remove();
+            }
+            
+            // Create new file input
+            const newInput = document.createElement('input');
+            newInput.type = 'file';
+            newInput.id = 'import-file-input';
+            newInput.style.display = 'none';
+            newInput.accept = '.eternal';
+            newInput.onchange = importSave;
+            
+            // Add to document and click
+            document.body.appendChild(newInput);
+            newInput.click();
+            
+            // Remove after a short delay to ensure dialog closes
+            setTimeout(() => {
+                newInput.remove();
+            }, 500);
+        }
+
         // Leaderboard functions
         const LEADERBOARD_KEY = "EternalPath_Leaderboard";
         const CODE_HASH_KEY = "EternalPath_CodeHash";
@@ -1389,42 +1483,6 @@
         const DATABASE_API_URL = "https://script.google.com/macros/s/AKfycbw7sSaSv_l-ojOGx044rUPa0B552jbChdBjhs_LhbNMQ8eit5kQkS1kV8FXqvvUMfED/exec"; // Database script for user management
         const LEADERBOARD_API_URL = "https://script.google.com/macros/s/AKfycby55PHwFpTwYqGYfrw-y82vQAJ3h3fcZM9DJ_1dCZFIm5sg50a1wRAFeYb98i81dcZCkQ/exec"; // Leaderboard script
         const USE_GOOGLE_SHEETS = true; // Toggle to enable/disable Google Sheets
-        
-        // CORS-friendly fetch wrapper
-        async function corsFetch(url, options = {}) {
-            const separator = url.includes('?') ? '&' : '?';
-            const urlWithTimestamp = `${url}${separator}_t=${Date.now()}`;
-            
-            const defaultOptions = {
-                mode: 'cors',
-                cache: 'no-cache',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-            };
-            
-            const fetchOptions = { ...defaultOptions, ...options };
-            
-            try {
-                const response = await fetch(urlWithTimestamp, fetchOptions);
-                if (response.ok) {
-                    return response;
-                }
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            } catch (error) {
-                console.warn('CORS fetch failed, trying GET method:', error.message);
-                
-                // Fallback to GET with URL parameters
-                if (fetchOptions.method === 'POST' && fetchOptions.body) {
-                    const params = new URLSearchParams(fetchOptions.body).toString();
-                    const fallbackUrl = `${urlWithTimestamp}${separator}${params}`;
-                    return fetch(fallbackUrl, { ...fetchOptions, method: 'GET', body: undefined });
-                }
-                
-                throw error;
-            }
-        }
 
         function getOrCreatePlayerID() {
             let playerID = localStorage.getItem(PLAYER_ID_KEY);
@@ -1446,211 +1504,6 @@
                 hash = hash & hash; // Convert to 32-bit integer
             }
             return hash.toString();
-        }
-
-        // Authentication functions
-        function showAuthModal() {
-            const modal = document.getElementById('auth-modal');
-            modal.style.display = 'flex';
-        }
-
-        function closeAuthModal() {
-            const modal = document.getElementById('auth-modal');
-            modal.style.display = 'none';
-        }
-
-        function showLoginModal() {
-            // Close all modals first
-            closeAuthModal();
-            closeSignupModal();
-            const modal = document.getElementById('login-modal');
-            modal.style.display = 'flex';
-        }
-
-        function closeLoginModal() {
-            const modal = document.getElementById('login-modal');
-            modal.style.display = 'none';
-        }
-
-        function showSignupModal() {
-            // Close all modals first
-            closeAuthModal();
-            closeLoginModal();
-            const modal = document.getElementById('signup-modal');
-            modal.style.display = 'flex';
-        }
-
-        function closeSignupModal() {
-            const modal = document.getElementById('signup-modal');
-            modal.style.display = 'none';
-        }
-
-        function stayAsGuest() {
-            closeAuthModal();
-            state.isLoggedIn = false;
-            state.currentUser = null;
-            state.authToken = null;
-            addLog("Playing as guest - progress will be saved locally.", true);
-            saveGame();
-        }
-
-        async function signup() {
-            const username = document.getElementById('signup-username').value.trim();
-            const password = document.getElementById('signup-password').value;
-            const confirmPassword = document.getElementById('signup-confirm-password').value;
-            const email = document.getElementById('signup-email').value.trim();
-
-            // Clear any previous error styling
-            clearInputErrors();
-
-
-            if (!username || !password) {
-                showModal("Error", "Username and password are required.", "OK", false, null);
-                return;
-            }
-
-            try {
-                const response = await fetch(DATABASE_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'login',
-                        username: username,
-                        password: password
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    state.isLoggedIn = true;
-                    state.currentUser = result.user;
-                    state.authToken = result.token;
-                    
-                    // Load game data from Google Sheets
-                    const cloudGameData = await loadFromGoogleSheetsUserData(result.token);
-                    if (cloudGameData) {
-                        // Merge cloud data with current state, prioritizing cloud data
-                        state = { ...state, ...cloudGameData };
-                        addLog(`Welcome back, ${username}! Your progress has been synced from the cloud.`, true);
-                    } else {
-                        addLog(`Welcome back, ${username}!`, true);
-                    }
-                    
-                    closeLoginModal();
-                    saveGame();
-                    updateUI();
-                } else {
-                    showModal("Login Failed", result.error || 'Login failed.', "OK", false, null);
-                }
-            } catch (error) {
-                console.error('Login error details:', error);
-                showModal("Network Error", `Network error during login: ${error.message}`, "OK", false, null);
-            }
-        }
-
-        async function login() {
-            const username = document.getElementById('login-username').value.trim();
-            const password = document.getElementById('login-password').value;
-
-            // Clear any previous error styling
-            clearInputErrors();
-
-            if (!username || !password) {
-                highlightInputError('login-username');
-                highlightInputError('login-password');
-                showModal("Error", "Username and password are required.", "OK", false, null);
-                return;
-            }
-
-            try {
-                const response = await fetch(DATABASE_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'login',
-                        username: username,
-                        password: password
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    state.isLoggedIn = true;
-                    state.currentUser = result.user;
-                    state.authToken = result.token;
-                    
-                    // Load game data from Google Sheets
-                    const cloudGameData = await loadFromGoogleSheetsUserData(result.token);
-                    if (cloudGameData) {
-                        // Merge cloud data with current state, prioritizing cloud data
-                        state = { ...state, ...cloudGameData };
-                        addLog(`Welcome back, ${username}! Your progress has been synced from the cloud.`, true);
-                    } else {
-                        addLog(`Welcome back, ${username}!`, true);
-                    }
-                    
-                    closeLoginModal();
-                    saveGame();
-                    updateUI();
-                } else {
-                    highlightInputError('login-username');
-                    highlightInputError('login-password');
-                    showModal("Login Failed", result.error || 'Login failed.', "OK", false, null);
-                }
-            } catch (error) {
-                console.error('Login error details:', error);
-                highlightInputError('login-username');
-                highlightInputError('login-password');
-                showModal("Network Error", `Network error during login: ${error.message}`, "OK", false, null);
-            }
-        }
-
-        async function logout() {
-            if (state.isLoggedIn && state.authToken) {
-                try {
-                    await fetch(DATABASE_API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            action: 'logout',
-                            token: state.authToken
-                        })
-                    });
-                } catch (error) {
-                    // Silently fail logout request
-                }
-            }
-
-            state.isLoggedIn = false;
-            state.currentUser = null;
-            state.authToken = null;
-            addLog("Logged out successfully.", true);
-            saveGame();
-            updateUI();
-        }
-
-        function checkAuthStatus() {
-            // Check if user is already logged in from saved data
-            if (state.isLoggedIn && state.authToken) {
-                // User is logged in, no need to show auth modal
-                return;
-            }
-
-            // Check if this is first time playing (no save data)
-            if (localStorage.getItem(SAVE_KEY) === null) {
-                // Show auth modal for first time players
-                setTimeout(() => {
-                    showAuthModal();
-                }, 500);
-            }
         }
 
         function checkCodeChange() {
@@ -1804,6 +1657,30 @@
             leaderboardList.innerHTML = html;
         }
 
+        async function refreshLeaderboardUI() {
+            if (!USE_GOOGLE_SHEETS || !LEADERBOARD_API_URL) {
+                // Fallback to local storage if Google Sheets is not available
+                const leaderboard = getLeaderboard();
+                displayLeaderboard(leaderboard, false);
+                return;
+            }
+
+            try {
+                const response = await fetch(LEADERBOARD_API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                displayLeaderboard(data, true);
+            } catch (error) {
+                console.error('Error fetching Google Sheets leaderboard:', error);
+                // Fallback to local storage on error
+                const leaderboard = getLeaderboard();
+                displayLeaderboard(leaderboard, false);
+                addLog("Heavenly connection lost... Using local leaderboard.", true);
+            }
+        }
+
         function clearLeaderboard() {
             showModal("Clear Leaderboard", "This will permanently delete all leaderboard entries. Are you sure?", "Clear All", true, () => {
                 localStorage.removeItem(LEADERBOARD_KEY);
@@ -1871,28 +1748,7 @@
         }
 
         // Google Sheets Integration Functions
-        function saveToGoogleSheetsUserData() {
-            if (!USE_GOOGLE_SHEETS || !DATABASE_API_URL || !state.isLoggedIn || !state.authToken) return;
-            
-            const userData = {
-                action: 'saveGameData',
-                token: state.authToken,
-                gameData: state
-            };
-            
-            fetch(DATABASE_API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
-            }).catch(() => {
-                // Silently fail if Google Sheets save fails
-                console.log('Failed to save game data to Google Sheets');
-            });
-        }
-
-        function saveToGoogleSheets() {
+        async function saveToGoogleSheets() {
             if (!USE_GOOGLE_SHEETS || !LEADERBOARD_API_URL || state.isAdmin) return;
             
             // Require realm index 15 or higher to qualify
@@ -1902,54 +1758,40 @@
             const reincarnationTime = localStorage.getItem(REINCARNATION_TIME_KEY);
             if (reincarnationTime) {
                 const timeSinceReincarnation = Date.now() - parseInt(reincarnationTime);
-            };
-            
-            fetch(LEADERBOARD_API_URL, {
-                method: "POST",
-                mode: "no-cors",
-                cache: "no-cache",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(leaderboardData)
-            }).then(response => {
-                if (response.ok) {
-                    addLog("Leaderboard updated successfully!", true);
-                } else {
-                    addLog("Failed to update leaderboard.", true);
+                const oneMinuteInMs = 60 * 1000; // 1 minute in milliseconds
+                if (timeSinceReincarnation < oneMinuteInMs) {
+                    return; // Not eligible yet
                 }
-            }).catch(() => {
-                addLog("Leaderboard update failed.", true);
-            });
-        }
+            }
 
-        async function refreshLeaderboardUI() {
-            const display = document.getElementById('leaderboard-list');
-            if (!display || !LEADERBOARD_API_URL) return;
+            // Prepare data to save
+            const playerData = {
+                playerName: state.playerName || "Unnamed Soul",
+                realmIndex: state.realmIndex,
+                stage: state.stage,
+                rp: calculateRP(),
+                years: state.years,
+                playerID: getOrCreatePlayerID(),
+                timestamp: Date.now()
+            };
 
             try {
-                const response = await fetch(LEADERBOARD_API_URL);
-                const data = await response.json();
-
-                let html = `<table style="width:100%; text-align:left; border-spacing: 0 5px;">
-                    <tr style="color: var(--text-dim); font-size: 0.8em;">
-                        <th>RANK</th><th>NAME</th><th style="text-align:right">REALM</th>
-                    </tr>`;
-                
-                data.forEach((p, i) => {
-                    const realmName = majorRealms[p.realmIndex] || "Mortal";
-                    const playerName = p.playerName || "Unnamed Soul"; // Use playerName from Google Sheets
-                    html += `<tr>
-                        <td>#${i+1}</td>
-                        <td style="color:var(--bloodline-gold)">${playerName}</td>
-                        <td style="text-align:right">${realmName} ${p.stage}</td>
-                    </tr>`;
+                // Send data to Google Sheets
+                const response = await fetch(LEADERBOARD_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(playerData)
                 });
-                html += `</table>`;
-                display.innerHTML = html;
                 
-                // Check and apply top 1 halo with updated data
-                checkAndApplyTop1Halo(data);
-            } catch (e) {
-                display.innerHTML = "Heavenly connection lost...";
+                const result = await response.json();
+                console.log('Leaderboard data saved successfully:', result);
+                
+                // Refresh leaderboard after saving
+                setTimeout(refreshLeaderboardUI, 500);
+            } catch (error) {
+                console.error('Error saving to leaderboard:', error);
             }
         }
 
@@ -2566,7 +2408,10 @@
             document.getElementById('man-exp-mult').innerText = formatStatusNum(Math.pow(UPGRADE_DATA.manual.power, state.upgrades.manual)) + "x";
             document.getElementById('man-up-lv').innerText = state.upgrades.manual;
             document.getElementById('man-up-cost').innerText = formatNum(getUpgradeCost('manual')) + " RP";
-            document.getElementById('char-name-ui').value = (state.playerName === "Unnamed Soul") ? "" : state.playerName;
+            const charNameUi = document.getElementById('char-name-ui');
+            if (charNameUi) {
+                charNameUi.value = (state.playerName === "Unnamed Soul") ? "" : state.playerName;
+            }
             document.getElementById('stats-name').innerText = state.playerName;
             document.getElementById('qi-amt').innerText = formatNum(state.qi);
             document.getElementById('qi-needed').innerText = formatNum(state.currentNeeded);
@@ -2604,27 +2449,9 @@
                 logoutBtn.style.display = state.isLoggedIn ? 'block' : 'none';
             }
             
-            // Update settings auth buttons visibility and status
-            const signupBtn = document.getElementById('signup-settings-btn');
-            const loginBtn = document.getElementById('login-settings-btn');
-            const authStatusText = document.getElementById('auth-status-text');
-            
-            if (signupBtn && loginBtn && authStatusText) {
-                if (state.isLoggedIn) {
-                    signupBtn.style.display = 'none';
-                    loginBtn.style.display = 'none';
-                    authStatusText.innerText = `Logged in as ${state.currentUser?.username || 'Unknown'}`;
-                    authStatusText.style.color = 'var(--accent-green)';
-                } else {
-                    signupBtn.style.display = 'block';
-                    loginBtn.style.display = 'block';
-                    authStatusText.innerText = 'Playing as guest';
-                    authStatusText.style.color = 'var(--text-dim)';
-                }
-            }
-            
             updateVisuals();
         }
+
         // Background cultivation system
         let lastActiveTime = Date.now();
         const BACKGROUND_CULTIVATION_KEY = "EternalPath_LastActive";
@@ -2961,30 +2788,7 @@
         checkAuthStatus(); // Check if user is already logged in
         loadGame();
         if (state.isAdmin) initAdminPanel();
-        if (localStorage.getItem(SAVE_KEY) === null) { 
-            try {
-                reincarnate(false); 
-            } catch (error) {
-                console.error('Reincarnation error:', error);
-                // Fallback initialization
-                state.qi = 0; 
-                state.currentNeeded = 100; 
-                state.realmIndex = 0; 
-                state.stage = 1;
-                state.months = 0; 
-                state.years = 0; 
-                state.maxLife = 50; 
-                state.manualLv = 1; 
-                state.manualExp = 0;
-                state.blId = rollMixedSystem(bloodlines, state.upgrades.luck).id; 
-                state.rootLv = rollRootLevel(); 
-                state.affId = rollMixedSystem(affinities, state.upgrades.luck).id;
-                updateUI(); 
-                saveGame();
-            }
-        } else { 
-            updateUI(); 
-        }
+        if (localStorage.getItem(SAVE_KEY) === null) { reincarnate(false); } else { updateUI(); }
         
         // Initialize background cultivation system
         lastActiveTime = loadLastActiveTime();
@@ -2995,6 +2799,207 @@
             const leaderboard = getLeaderboard();
             checkAndApplyTop1Halo(leaderboard);
         }, 100);
+    // Google Apps Script Chat System (Integrated as Tab)
+        let currentUser = null;
+        let currentRoom = 'general';
+        let chatMessages = [];
+        let chatUsers = [];
+        let pollingInterval = null;
+        let lastMessageCount = 0;
+        
+        // Replace this with your Google Apps Script Web App URL
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwy2gSHeRcjQWW20qZ18wAxE6A0bhDuR09qiguLlX1ufHz63EYCYfQVr1WxzWGEwZM1MA/exec';
+
+        function initChatSystem() {
+            // Load saved username
+            const savedUsername = localStorage.getItem('chat_username');
+            if (savedUsername) {
+                document.getElementById('chat-username').value = savedUsername;
+                currentUser = savedUsername;
+            } else {
+                currentUser = `User_${Math.random().toString(36).substr(2, 8)}`;
+                document.getElementById('chat-username').value = currentUser;
+            }
+
+            // Event listeners
+            document.getElementById('chat-username').addEventListener('change', (e) => {
+                currentUser = e.target.value.trim() || `User_${Math.random().toString(36).substr(2, 8)}`;
+                localStorage.setItem('chat_username', currentUser);
+            });
+
+            document.getElementById('chat-room-select').addEventListener('change', (e) => {
+                currentRoom = e.target.value;
+                loadMessages();
+            });
+
+            document.getElementById('chat-send').addEventListener('click', sendMessage);
+            document.getElementById('chat-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // Start polling when chat tab is first opened
+            startChatPolling();
+        }
+
+        function startChatPolling() {
+            if (pollingInterval) return; // Already polling
+            
+            loadMessages();
+            loadRooms();
+            
+            pollingInterval = setInterval(() => {
+                loadMessages();
+            }, 3000);
+        }
+
+        function stopChatPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        async function loadMessages() {
+            try {
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=10`);
+                if (response.ok) {
+                    const messages = await response.json();
+                    
+                    if (messages.length !== lastMessageCount) {
+                        chatMessages = messages;
+                        displayMessages();
+                        lastMessageCount = messages.length;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                document.getElementById('chat-messages').innerHTML = '<div style="color: var(--danger-red);">Error loading messages. Check your Google Apps Script URL.</div>';
+            }
+        }
+
+        async function loadActiveUsers() {
+            // Removed - no longer needed
+        }
+
+        async function loadRooms() {
+            try {
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/rooms`);
+                if (response.ok) {
+                    const rooms = await response.json();
+                    const select = document.getElementById('chat-room-select');
+                    select.innerHTML = rooms.map(room => 
+                        `<option value="${room}" ${room === currentRoom ? 'selected' : ''}>${room}</option>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading rooms:', error);
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (message && currentUser) {
+                try {
+                    const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/send`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: currentUser,
+                            content: message,
+                            room: currentRoom,
+                            user_id: currentUser
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        input.value = '';
+                        setTimeout(loadMessages, 500);
+                    } else {
+                        const error = await response.json();
+                        if (error.error && error.error.includes('99+')) {
+                            showMessageLimitPopup();
+                        } else {
+                            alert(`Error sending message: ${error.error}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    alert('Error sending message. Check your Google Apps Script URL.');
+                }
+            }
+        }
+
+        function showMessageLimitPopup() {
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: var(--panel-bg);
+                border: 2px solid var(--danger-red);
+                padding: 20px;
+                border-radius: 10px;
+                z-index: 10001;
+                box-shadow: 0 0 30px rgba(0,0,0,0.8);
+                text-align: center;
+                min-width: 300px;
+            `;
+            
+            popup.innerHTML = `
+                <h3 style="color: var(--danger-red); margin-bottom: 10px;">⚠️ Message Limit Reached</h3>
+                <p style="color: var(--text-main); margin-bottom: 15px;">You have reached the maximum of 99 messages in this chat room.</p>
+                <p style="color: var(--text-dim); font-size: 0.8rem;">Please start a new conversation or clear the chat history.</p>
+                <button onclick="this.parentElement.remove()" style="background: var(--accent-green); color: var(--bg-dark); border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">OK</button>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.remove();
+                }
+            }, 5000);
+        }
+
+        function displayMessages() {
+            const messagesDiv = document.getElementById('chat-messages');
+            messagesDiv.innerHTML = '';
+            
+            chatMessages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = `
+                    margin-bottom: 8px;
+                    padding: 5px;
+                    border-radius: 3px;
+                    background: var(--bg-dark);
+                    border-left: 3px solid var(--accent-green);
+                `;
+                
+                const timestamp = new Date(message.timestamp).toLocaleTimeString();
+                
+                messageDiv.innerHTML = `
+                    <div style="font-size: 10px; color: var(--text-dim);">${timestamp}</div>
+                    <div style="color: var(--text-main);">
+                        <strong>${message.username}:</strong> ${message.content}
+                    </div>
+                `;
+                
+                messagesDiv.appendChild(messageDiv);
+            });
+            
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Initialize chat system when page loads
+        initChatSystem();
     </script>
 </body>
 </html> 
