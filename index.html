@@ -3029,6 +3029,16 @@
             }, 8000);
         }
 
+        function checkAuthStatus() {
+            // Simple authentication check - can be expanded later
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                state.isLoggedIn = true;
+                state.authToken = token;
+                // Could verify token with server here
+            }
+        }
+
         function displayMessages() {
             const messagesDiv = document.getElementById('chat-messages');
             messagesDiv.innerHTML = '';
