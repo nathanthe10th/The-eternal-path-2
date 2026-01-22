@@ -2913,6 +2913,11 @@
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
             
+            // Fallback: if currentUser is not set, use current character name or Anonymous
+            if (!currentUser) {
+                currentUser = document.getElementById('char-name-ui')?.value || 'Anonymous';
+            }
+            
             if (message && currentUser) {
                 try {
                     const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/send`, {
@@ -2936,12 +2941,12 @@
                         if (error.error && error.error.includes('99+')) {
                             showMessageLimitPopup();
                         } else {
-                            alert(`Error sending message: ${error.error}`);
+                            showChatErrorPopup(`Error sending message: ${error.error}`);
                         }
                     }
                 } catch (error) {
                     console.error('Error sending message:', error);
-                    alert('Error sending message. Check your Google Apps Script URL.');
+                    showChatErrorPopup('Error sending message. Check your Google Apps Script URL.');
                 }
             }
         }
@@ -2978,6 +2983,46 @@
                     popup.remove();
                 }
             }, 5000);
+        }
+
+        function showChatErrorPopup(message) {
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: var(--panel-bg);
+                border: 2px solid var(--danger-red);
+                padding: 20px;
+                border-radius: 10px;
+                color: var(--text-main);
+                font-weight: bold;
+                z-index: 1001;
+                box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            `;
+            popup.innerHTML = `
+                <div style="margin-bottom: 15px; font-size: 1.1rem;">⚠️ Chat Error</div>
+                <div style="margin-bottom: 20px;">${message}</div>
+                <button onclick="this.parentElement.remove()" style="
+                    background: var(--danger-red);
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-weight: bold;
+                ">OK</button>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Auto-remove after 8 seconds
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.remove();
+                }
+            }, 8000);
         }
 
         function displayMessages() {
