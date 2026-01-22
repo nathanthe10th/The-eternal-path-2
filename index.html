@@ -2855,32 +2855,6 @@
             }
         }
 
-        async function loadMessages() {
-            try {
-                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=10`);
-                if (response.ok) {
-                    const messages = await response.json();
-                    
-                    // Update total messages count
-                    const allMessagesResponse = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=999`);
-                    if (allMessagesResponse.ok) {
-                        const allMessages = await allMessagesResponse.json();
-                        totalMessagesInRoom = allMessages.length;
-                        updateUnseenCount();
-                    }
-                    
-                    if (messages.length !== lastMessageCount) {
-                        chatMessages = messages;
-                        displayMessages();
-                        lastMessageCount = messages.length;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading messages:', error);
-                document.getElementById('chat-messages').innerHTML = '<div style="color: var(--danger-red);">Error loading messages. Check your Google Apps Script URL.</div>';
-            }
-        }
-
         function updateUnseenCount() {
             const unseenCount = Math.max(0, totalMessagesInRoom - lastMessageCount);
             const unseenElement = document.getElementById('unseen-count');
@@ -2892,6 +2866,36 @@
 
         async function loadActiveUsers() {
             // Removed - no longer needed
+        }
+
+        async function loadMessages() {
+            try {
+                console.log('Loading messages from:', `${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=10`);
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=10`);
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                if (response.ok) {
+                    const messages = await response.json();
+                    console.log('Messages received:', messages);
+                    chatMessages = messages;
+                    displayMessages();
+                    
+                    // Update total messages count
+                    const allMessagesResponse = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=999`);
+                    if (allMessagesResponse.ok) {
+                        const allMessages = await allMessagesResponse.json();
+                        totalMessagesInRoom = allMessages.length;
+                    }
+                } else {
+                    const error = await response.json();
+                    console.error('Error loading messages:', error);
+                    document.getElementById('chat-messages').innerHTML = `<div style="color: var(--danger-red);">Error: ${error.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                document.getElementById('chat-messages').innerHTML = '<div style="color: var(--danger-red);">Error loading messages. Check your Google Apps Script URL.</div>';
+            }
         }
 
         async function loadRooms() {
