@@ -2870,10 +2870,25 @@
 
         async function loadMessages() {
             try {
-                console.log('Loading messages from:', `${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=10`);
-                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=10`);
+                const requestBody = JSON.stringify({
+                    room: currentRoom,
+                    limit: 10
+                });
+                
+                console.log('Loading messages from:', `${GOOGLE_APPS_SCRIPT_URL}/messages`);
+                console.log('Request body:', requestBody);
+                
+                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: requestBody
+                });
+                
                 console.log('Response status:', response.status);
                 console.log('Response ok:', response.ok);
+                console.log('Response headers:', response.headers);
                 
                 if (response.ok) {
                     const messages = await response.json();
@@ -2882,7 +2897,16 @@
                     displayMessages();
                     
                     // Update total messages count
-                    const allMessagesResponse = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=999`);
+                    const allMessagesResponse = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            room: currentRoom,
+                            limit: 999
+                        })
+                    });
                     if (allMessagesResponse.ok) {
                         const allMessages = await allMessagesResponse.json();
                         totalMessagesInRoom = allMessages.length;
