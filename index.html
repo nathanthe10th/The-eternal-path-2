@@ -701,28 +701,32 @@
                 <button class="admin-btn" style="width: 100%; margin-bottom: 5px; border-color: var(--danger-red); color: var(--danger-red);" onclick="logout()" id="logout-btn" style="display: none;">Sign Out</button>
             </div>
         </div>
+
         <div id="tab-chat" class="tab-content">
             <div class="sidebar-header">Google Sheets Chat</div>
             <div class="roll-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <select id="chat-room-select" style="width: 100%; padding: 8px; background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; font-family: inherit; font-size: 0.7rem;">
-                            <option value="general 1">General 1</option>
-                            <option value="general 2">General 2</option>
-                            <option value="general 3">General 3</option>
-                            <option value="general 4">General 4</option>
-                            <option value="general 5">General 5</option>
-                        </select>
-                    </div>
+                <select id="chat-room-select" style="width: 100%; padding: 5px; background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; margin-bottom: 10px;">
+                    <option value="general 1">General 1</option>
+                    <option value="general 2">General 2</option>
+                    <option value="general 3">General 3</option>
+                    <option value="general 4">General 4</option>
+                    <option value="general 5">General 5</option>
+                </select>
+            </div>
+            
+            <div class="roll-card">
+                <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px;">
+                    <div id="unseen-count" style="background: var(--manual-orange); color: var(--bg-dark); padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.8rem; display: none;">0</div>
                 </div>
-                <div id="chat-messages" style="flex-grow: 1; min-height: 200px; max-height: 300px; overflow-y: auto; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 4px;">
+                <div id="chat-messages" style="font-size: 0.7rem;">
                     <div style="color: var(--text-dim); text-align: center;">Loading messages...</div>
                 </div>
             </div>
             
             <div class="roll-card">
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; padding: 8px; background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; font-family: inherit; font-size: 0.7rem;">
-                    <button id="chat-send" style="background: var(--accent-green); color: var(--bg-dark); border: none; padding: 8px 15px; border-radius: 3px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 0.7rem; transition: all 0.2s;">Send</button>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; padding: 5px; background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px;">
+                    <button id="chat-send" style="background: var(--accent-green); color: var(--bg-dark); border: none; padding: 5px 15px; border-radius: 3px; cursor: pointer; font-weight: bold;">Send</button>
                 </div>
             </div>
         </div>
@@ -2806,27 +2810,17 @@
         let chatUsers = [];
         let pollingInterval = null;
         let lastMessageCount = 0;
+        let totalMessagesInRoom = 0;
         
         // Replace this with your Google Apps Script Web App URL
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwy2gSHeRcjQWW20qZ18wAxE6A0bhDuR09qiguLlX1ufHz63EYCYfQVr1WxzWGEwZM1MA/exec';
 
         function initChatSystem() {
-            // Load saved username
-            const savedUsername = localStorage.getItem('chat_username');
-            if (savedUsername) {
-                document.getElementById('chat-username').value = savedUsername;
-                currentUser = savedUsername;
-            } else {
-                currentUser = `User_${Math.random().toString(36).substr(2, 8)}`;
-                document.getElementById('chat-username').value = currentUser;
-            }
+            // Use existing character name
+            const charName = document.getElementById('char-name-ui')?.value || 'Anonymous';
+            currentUser = charName;
 
             // Event listeners
-            document.getElementById('chat-username').addEventListener('change', (e) => {
-                currentUser = e.target.value.trim() || `User_${Math.random().toString(36).substr(2, 8)}`;
-                localStorage.setItem('chat_username', currentUser);
-            });
-
             document.getElementById('chat-room-select').addEventListener('change', (e) => {
                 currentRoom = e.target.value;
                 loadMessages();
@@ -2867,6 +2861,14 @@
                 if (response.ok) {
                     const messages = await response.json();
                     
+                    // Update total messages count
+                    const allMessagesResponse = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages?room=${encodeURIComponent(currentRoom)}&limit=999`);
+                    if (allMessagesResponse.ok) {
+                        const allMessages = await allMessagesResponse.json();
+                        totalMessagesInRoom = allMessages.length;
+                        updateUnseenCount();
+                    }
+                    
                     if (messages.length !== lastMessageCount) {
                         chatMessages = messages;
                         displayMessages();
@@ -2876,6 +2878,15 @@
             } catch (error) {
                 console.error('Error loading messages:', error);
                 document.getElementById('chat-messages').innerHTML = '<div style="color: var(--danger-red);">Error loading messages. Check your Google Apps Script URL.</div>';
+            }
+        }
+
+        function updateUnseenCount() {
+            const unseenCount = Math.max(0, totalMessagesInRoom - lastMessageCount);
+            const unseenElement = document.getElementById('unseen-count');
+            if (unseenElement) {
+                unseenElement.textContent = unseenCount;
+                unseenElement.style.display = unseenCount > 0 ? 'block' : 'none';
             }
         }
 
@@ -2996,6 +3007,10 @@
             });
             
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            // Mark messages as seen
+            lastMessageCount = chatMessages.length;
+            updateUnseenCount();
         }
 
         // Initialize chat system when page loads
