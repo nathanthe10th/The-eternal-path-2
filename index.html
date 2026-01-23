@@ -2833,8 +2833,8 @@
             });
             
             document.getElementById('char-name-ui').addEventListener('input', function(e) {
-                if (e.target.value.length > 20) {
-                    e.target.value = e.target.value.substring(0, 20);
+                if (e.target.value.length > 10) {
+                    e.target.value = e.target.value.substring(0, 10);
                 }
             });
         }
@@ -2863,11 +2863,11 @@
             // Set sending flag
             isSending = true;
 
-            // Use char-name-ui from your index.html with 20 character limit
+            // Use char-name-ui from your index.html with 10 character limit
             const nameInput = document.getElementById('char-name-ui');
             let user = nameInput.value || "Mortal";
-            if (user.length > 20) {
-                user = user.substring(0, 20);
+            if (user.length > 10) {
+                user = user.substring(0, 10);
                 nameInput.value = user; // Update the input field
             }
             
