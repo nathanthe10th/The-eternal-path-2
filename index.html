@@ -2888,8 +2888,17 @@
                 // Reset sending flag
                 isSending = false;
                 
-                // Auto-refresh messages immediately after sending
-                setTimeout(fetchMessages, 500);
+                // Instantly add the message to display
+                const tempMessage = {
+                    timestamp: new Date().toISOString(),
+                    username: user,
+                    content: content
+                };
+                chatMessages.push(tempMessage);
+                displayMessages();
+                
+                // Quick refresh to sync with server
+                setTimeout(fetchMessages, 200);
             };
 
             const s = document.createElement('script');
@@ -3033,7 +3042,8 @@
                 if (messageId) currentMessageIds.add(messageId);
             });
             
-            messagesDiv.innerHTML = '';
+            // Don't clear the entire div - just add new messages
+            let newMessagesAdded = false;
             
             chatMessages.forEach(message => {
                 // Create unique ID for each message (using timestamp + username + content)
@@ -3053,6 +3063,8 @@
                     word-wrap: break-word;
                     overflow-wrap: break-word;
                     max-width: 100%;
+                    opacity: 0;
+                    transition: opacity 0.2s ease-in;
                 `;
                 
                 const timestamp = new Date(message.timestamp).toLocaleTimeString();
@@ -3065,9 +3077,19 @@
                 `;
                 
                 messagesDiv.appendChild(messageDiv);
+                
+                // Fade in animation
+                setTimeout(() => {
+                    messageDiv.style.opacity = '1';
+                }, 10);
+                
+                newMessagesAdded = true;
             });
             
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            // Only scroll if new messages were added
+            if (newMessagesAdded) {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
         }
 
         // Initialize chat system when page loads
