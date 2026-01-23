@@ -2814,8 +2814,8 @@
         function initChatSystem() {
             // Initial fetch
             fetchMessages();
-            // Refresh every 3 seconds (reduced from 5 to be more responsive but not too aggressive)
-            setInterval(fetchMessages, 3000);
+            // Refresh every 1 second for real-time sync with Google Sheet
+            setInterval(fetchMessages, 1000);
             
             // Clean up expired messages every 5 minutes
             setInterval(cleanupExpiredMessages, 5 * 60 * 1000);
@@ -2932,6 +2932,8 @@
             document.head.appendChild(s);
         }
 
+        let lastMessagesHash = ''; // Track changes in messages
+
         function fetchMessages() {
             const cb = 'jsonp_fetch_' + Date.now();
             
@@ -2939,9 +2941,20 @@
             
             window[cb] = function(data) {
                 console.log('Fetch response:', data);
-                // chatMessages is the global array in your index.html
-                chatMessages = data.messages; 
-                displayMessages(); // Existing render function in your index.html
+                
+                // Create hash of current messages to detect changes
+                const currentMessagesHash = JSON.stringify(data.messages);
+                
+                // Only update display if messages have actually changed
+                if (currentMessagesHash !== lastMessagesHash) {
+                    chatMessages = data.messages; 
+                    displayMessages(); // Existing render function in your index.html
+                    lastMessagesHash = currentMessagesHash;
+                    console.log('Messages updated - detected changes');
+                } else {
+                    console.log('No changes detected - skipping display update');
+                }
+                
                 delete window[cb];
                 const s = document.getElementById(cb);
                 if (s) s.remove();
