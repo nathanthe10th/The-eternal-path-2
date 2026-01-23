@@ -2832,7 +2832,10 @@
             const user = document.getElementById('char-name-ui').value || "Mortal";
             const cb = 'jsonp_send_' + Date.now();
             
+            console.log('Sending message:', { user, content, channel: currentChannel });
+            
             window[cb] = function(res) {
+                console.log('Send response:', res);
                 delete window[cb];
                 const s = document.getElementById(cb);
                 if (s) s.remove();
@@ -2843,13 +2846,22 @@
             const s = document.createElement('script');
             s.id = cb;
             s.src = `${SCRIPT_URL}?action=send&channel=${currentChannel}&username=${encodeURIComponent(user)}&content=${encodeURIComponent(content)}&callback=${cb}`;
+            s.onerror = function() {
+                console.error('Script load failed for send message');
+                delete window[cb];
+                const s = document.getElementById(cb);
+                if (s) s.remove();
+            };
             document.head.appendChild(s);
         }
 
         function fetchMessages() {
             const cb = 'jsonp_fetch_' + Date.now();
             
+            console.log('Fetching messages for channel:', currentChannel);
+            
             window[cb] = function(data) {
+                console.log('Fetch response:', data);
                 // chatMessages is the global array in your index.html
                 chatMessages = data.messages; 
                 displayMessages(); // Existing render function in your index.html
@@ -2861,6 +2873,12 @@
             const s = document.createElement('script');
             s.id = cb;
             s.src = `${SCRIPT_URL}?action=fetch&channel=${currentChannel}&callback=${cb}`;
+            s.onerror = function() {
+                console.error('Script load failed for fetch messages');
+                delete window[cb];
+                const s = document.getElementById(cb);
+                if (s) s.remove();
+            };
             document.head.appendChild(s);
         }
 
