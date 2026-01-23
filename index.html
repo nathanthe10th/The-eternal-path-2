@@ -3035,25 +3035,30 @@
         function displayMessages() {
             const messagesDiv = document.getElementById('chat-messages');
             
-            // Get current message IDs to prevent duplicates
-            const currentMessageIds = new Set();
+            // Get current message content to detect duplicates
+            const currentMessageContent = new Set();
             Array.from(messagesDiv.children).forEach(child => {
-                const messageId = child.getAttribute('data-message-id');
-                if (messageId) currentMessageIds.add(messageId);
+                const username = child.getAttribute('data-username');
+                const content = child.getAttribute('data-content');
+                if (username && content) {
+                    currentMessageContent.add(`${username}:${content}`);
+                }
             });
             
             // Don't clear the entire div - just add new messages
             let newMessagesAdded = false;
             
             chatMessages.forEach(message => {
-                // Create unique ID for each message (using timestamp + username + content)
-                const messageId = `${message.timestamp}_${message.username}_${message.content.substring(0, 20)}`;
+                // Create unique content key for duplicate detection
+                const contentKey = `${message.username}:${message.content}`;
                 
-                // Skip if this message is already displayed
-                if (currentMessageIds.has(messageId)) return;
+                // Skip if this exact message is already displayed
+                if (currentMessageContent.has(contentKey)) return;
                 
                 const messageDiv = document.createElement('div');
-                messageDiv.setAttribute('data-message-id', messageId);
+                messageDiv.setAttribute('data-username', message.username);
+                messageDiv.setAttribute('data-content', message.content);
+                messageDiv.setAttribute('data-message-id', `${message.timestamp}_${message.username}_${message.content.substring(0, 20)}`);
                 messageDiv.style.cssText = `
                     margin-bottom: 8px;
                     padding: 5px;
