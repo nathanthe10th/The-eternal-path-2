@@ -2803,180 +2803,65 @@
             const leaderboard = getLeaderboard();
             checkAndApplyTop1Halo(leaderboard);
         }, 100);
-    // Google Apps Script Chat System (Integrated as Tab)
-        let currentUser = null;
-        let currentRoom = 'general';
+    // Google Apps Script Chat System (Updated Version)
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwy2gSHeRcjQWW20qZ18wAxE6A0bhDuR09qiguLlX1ufHz63EYCYfQVr1WxzWGEwZM1MA/exec";
+        let currentChannel = "Global"; // Matches the channel parameter in the backend
         let chatMessages = [];
-        let chatUsers = [];
-        let pollingInterval = null;
-        let lastMessageCount = 0;
-        let totalMessagesInRoom = 0;
-        
-        // Replace this with your Google Apps Script Web App URL
-        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwy2gSHeRcjQWW20qZ18wAxE6A0bhDuR09qiguLlX1ufHz63EYCYfQVr1WxzWGEwZM1MA/exec';
 
         function initChatSystem() {
-            // Use existing character name
-            const charName = document.getElementById('char-name-ui')?.value || 'Anonymous';
-            currentUser = charName;
-
+            // Initial fetch
+            fetchMessages();
+            // Refresh every 5 seconds
+            setInterval(fetchMessages, 2000);
+            
             // Event listeners
-            document.getElementById('chat-room-select').addEventListener('change', (e) => {
-                currentRoom = e.target.value;
-                loadMessages();
-            });
-
             document.getElementById('chat-send').addEventListener('click', sendMessage);
             document.getElementById('chat-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     sendMessage();
                 }
             });
-
-            // Start polling when chat tab is first opened
-            startChatPolling();
         }
 
-        function startChatPolling() {
-            if (pollingInterval) return; // Already polling
-            
-            loadMessages();
-            loadRooms();
-            
-            pollingInterval = setInterval(() => {
-                loadMessages();
-            }, 3000);
-        }
-
-        function stopChatPolling() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-                pollingInterval = null;
-            }
-        }
-
-        function updateUnseenCount() {
-            const unseenCount = Math.max(0, totalMessagesInRoom - lastMessageCount);
-            const unseenElement = document.getElementById('unseen-count');
-            if (unseenElement) {
-                unseenElement.textContent = unseenCount;
-                unseenElement.style.display = unseenCount > 0 ? 'block' : 'none';
-            }
-        }
-
-        async function loadActiveUsers() {
-            // Removed - no longer needed
-        }
-
-        async function loadMessages() {
-            try {
-                const requestBody = JSON.stringify({
-                    room: currentRoom,
-                    limit: 10
-                });
-                
-                console.log('Loading messages from:', `${GOOGLE_APPS_SCRIPT_URL}/messages`);
-                console.log('Request body:', requestBody);
-                
-                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: requestBody
-                });
-                
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-                console.log('Response headers:', response.headers);
-                
-                if (response.ok) {
-                    const messages = await response.json();
-                    console.log('Messages received:', messages);
-                    chatMessages = messages;
-                    displayMessages();
-                    
-                    // Update total messages count
-                    const allMessagesResponse = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/messages`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            room: currentRoom,
-                            limit: 999
-                        })
-                    });
-                    if (allMessagesResponse.ok) {
-                        const allMessages = await allMessagesResponse.json();
-                        totalMessagesInRoom = allMessages.length;
-                    }
-                } else {
-                    const error = await response.json();
-                    console.error('Error loading messages:', error);
-                    document.getElementById('chat-messages').innerHTML = `<div style="color: var(--danger-red);">Error: ${error.error || 'Unknown error'}</div>`;
-                }
-            } catch (error) {
-                console.error('Error loading messages:', error);
-                document.getElementById('chat-messages').innerHTML = '<div style="color: var(--danger-red);">Error loading messages. Check your Google Apps Script URL.</div>';
-            }
-        }
-
-        async function loadRooms() {
-            try {
-                const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/rooms`);
-                if (response.ok) {
-                    const rooms = await response.json();
-                    const select = document.getElementById('chat-room-select');
-                    select.innerHTML = rooms.map(room => 
-                        `<option value="${room}" ${room === currentRoom ? 'selected' : ''}>${room}</option>`
-                    ).join('');
-                }
-            } catch (error) {
-                console.error('Error loading rooms:', error);
-            }
-        }
-
-        async function sendMessage() {
+        function sendMessage() {
             const input = document.getElementById('chat-input');
-            const message = input.value.trim();
+            const content = input.value.trim();
+            if (!content) return;
+
+            // Use char-name-ui from your index.html
+            const user = document.getElementById('char-name-ui').value || "Mortal";
+            const cb = 'jsonp_send_' + Date.now();
             
-            // Fallback: if currentUser is not set, use current character name or Anonymous
-            if (!currentUser) {
-                currentUser = document.getElementById('char-name-ui')?.value || 'Anonymous';
-            }
+            window[cb] = function(res) {
+                delete window[cb];
+                const s = document.getElementById(cb);
+                if (s) s.remove();
+                input.value = '';
+                fetchMessages(); 
+            };
+
+            const s = document.createElement('script');
+            s.id = cb;
+            s.src = `${SCRIPT_URL}?action=send&channel=${currentChannel}&username=${encodeURIComponent(user)}&content=${encodeURIComponent(content)}&callback=${cb}`;
+            document.head.appendChild(s);
+        }
+
+        function fetchMessages() {
+            const cb = 'jsonp_fetch_' + Date.now();
             
-            if (message && currentUser) {
-                try {
-                    const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}/send`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username: currentUser,
-                            content: message,
-                            room: currentRoom,
-                            user_id: currentUser
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        input.value = '';
-                        setTimeout(loadMessages, 500);
-                    } else {
-                        const error = await response.json();
-                        if (error.error && error.error.includes('99+')) {
-                            showMessageLimitPopup();
-                        } else {
-                            showChatErrorPopup(`Error sending message: ${error.error}`);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error sending message:', error);
-                    showChatErrorPopup('Error sending message. Check your Google Apps Script URL.');
-                }
-            }
+            window[cb] = function(data) {
+                // chatMessages is the global array in your index.html
+                chatMessages = data.messages; 
+                displayMessages(); // Existing render function in your index.html
+                delete window[cb];
+                const s = document.getElementById(cb);
+                if (s) s.remove();
+            };
+
+            const s = document.createElement('script');
+            s.id = cb;
+            s.src = `${SCRIPT_URL}?action=fetch&channel=${currentChannel}&callback=${cb}`;
+            document.head.appendChild(s);
         }
 
         function showMessageLimitPopup() {
