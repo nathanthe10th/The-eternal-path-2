@@ -3074,6 +3074,44 @@
                 }
             });
             
+            // Create map of existing messages to find duplicates
+            const existingMessages = new Map();
+            Array.from(messagesDiv.children).forEach(child => {
+                const username = child.getAttribute('data-username');
+                const content = child.getAttribute('data-content');
+                const timestamp = parseInt(child.getAttribute('data-timestamp') || '0');
+                if (username && content) {
+                    const key = `${username}:${content}`;
+                    if (!existingMessages.has(key) || timestamp > existingMessages.get(key)) {
+                        existingMessages.set(key, { element: child, timestamp: timestamp });
+                    }
+                }
+            });
+            
+            // Remove older duplicates, keep newest
+            existingMessages.forEach((info, key) => {
+                const allDuplicates = Array.from(messagesDiv.children).filter(child => {
+                    const username = child.getAttribute('data-username');
+                    const content = child.getAttribute('data-content');
+                    return username && content && `${username}:${content}` === key;
+                });
+                
+                if (allDuplicates.length > 1) {
+                    // Sort by timestamp (newest first) and remove older ones
+                    allDuplicates.sort((a, b) => {
+                        const timeA = parseInt(a.getAttribute('data-timestamp') || '0');
+                        const timeB = parseInt(b.getAttribute('data-timestamp') || '0');
+                        return timeB - timeA; // Newest first
+                    });
+                    
+                    // Keep the newest, remove the rest
+                    for (let i = 1; i < allDuplicates.length; i++) {
+                        allDuplicates[i].remove();
+                        console.log(`Removed duplicate message: ${key}`);
+                    }
+                }
+            });
+            
             // Get current message content to detect duplicates
             const currentMessageContent = new Set();
             Array.from(messagesDiv.children).forEach(child => {
