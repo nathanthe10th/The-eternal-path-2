@@ -303,6 +303,28 @@
                 transform: translateY(0);
             }
         }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
 
         .sidebar-header { font-size: 0.7rem; letter-spacing: 2px; color: var(--text-dim); margin-top: 10px; text-transform: uppercase;}
         .roll-card { border: 1px solid var(--border-color); padding: 10px; text-align: center; background: rgba(255, 255, 255, 0.02); border-radius: 4px; transition: 0.3s; margin-bottom: 5px; }
@@ -738,6 +760,7 @@
                     <option value="general 3">General 3</option>
                     <option value="general 4">General 4</option>
                     <option value="general 5">General 5</option>
+                    <option value="the-general" id="elite-channel-option" style="display: none;">👑 The General</option>
                 </select>
             </div>
             
@@ -746,14 +769,14 @@
                     <div id="unseen-count" style="background: var(--manual-orange); color: var(--bg-dark); padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.8rem; display: none;">0</div>
                 </div>
                 <div id="chat-messages" style="font-size: 0.7rem;">
-                    <div style="color: var(--text-dim); text-align: center;">Loading messages...</div>
                 </div>
             </div>
             
             <div class="roll-card">
-                <div style="display: flex; gap: 5px;">
+                <div style="display: flex; gap: 3px;">
                     <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; padding: 5px; background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px;">
-                    <button id="chat-send" style="background: var(--accent-green); color: var(--bg-dark); border: none; padding: 5px 15px; border-radius: 3px; cursor: pointer; font-weight: bold;">Send</button>
+                    <button id="chat-send" style="background: var(--accent-green); color: var(--bg-dark); border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-weight: bold; font-size: 0.65rem;">Send</button>
+                    <button id="chat-refresh-btn" style="background: transparent; color: var(--text-dim); border: 1px solid transparent; padding: 5px 4px; border-radius: 3px; cursor: pointer; font-size: 0.5rem; font-weight: 400; transition: all 0.3s ease; opacity: 0.6;">↻</button>
                 </div>
             </div>
         </div>
@@ -2858,13 +2881,55 @@
         }, 100);
     // Google Apps Script Chat System (Updated Version)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwy2gSHeRcjQWW20qZ18wAxE6A0bhDuR09qiguLlX1ufHz63EYCYfQVr1WxzWGEwZM1MA/exec";
-        let currentChannel = "Global"; // Matches the channel parameter in the backend
+        let currentChannel = "general 1"; // Start with first general channel
         let chatMessages = [];
         let lastMessageTime = 0;
         const MESSAGE_COOLDOWN = 2000; // 2 seconds cooldown
         let isSending = false; // Prevent duplicate sends
 
+        function checkEliteChannelAccess() {
+            if (!USE_GOOGLE_SHEETS || !LEADERBOARD_API_URL) {
+                // If Google Sheets isn't available, check local leaderboard
+                const leaderboard = getLeaderboard();
+                const playerID = getOrCreatePlayerID();
+                const currentPlayerName = state.playerName || "Unnamed Soul";
+                
+                const playerRank = leaderboard.findIndex(entry => 
+                    (entry.playerID === playerID) || 
+                    (entry.filename === currentPlayerName && !entry.playerID)
+                );
+                
+                if (playerRank !== -1 && playerRank < 20) {
+                    document.getElementById('elite-channel-option').style.display = 'block';
+                }
+                return;
+            }
+            
+            // Check Google Sheets leaderboard
+            fetch(LEADERBOARD_API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    const playerID = getOrCreatePlayerID();
+                    const currentPlayerName = state.playerName || "Unnamed Soul";
+                    
+                    const playerRank = data.findIndex(entry => 
+                        (entry.playerID === playerID) || 
+                        (entry.filename === currentPlayerName && !entry.playerID)
+                    );
+                    
+                    if (playerRank !== -1 && playerRank < 20) {
+                        document.getElementById('elite-channel-option').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking elite channel access:', error);
+                });
+        }
+
         function initChatSystem() {
+            // Check if user has elite channel access
+            checkEliteChannelAccess();
+            
             // Initial fetch
             fetchMessages();
             // Remove the fixed interval - we'll use dynamic reloading instead
@@ -2880,12 +2945,69 @@
                 }
             });
             
+            // Refresh button event listener
+            document.getElementById('chat-refresh-btn').addEventListener('click', () => {
+                // Fetch fresh messages
+                fetchMessages();
+                
+                // Very subtle visual feedback
+                const btn = document.getElementById('chat-refresh-btn');
+                btn.style.opacity = '1';
+                btn.style.color = 'var(--accent-green)';
+                setTimeout(() => {
+                    btn.style.opacity = '0.6';
+                    btn.style.color = 'var(--text-dim)';
+                }, 300);
+            });
+            
+            // Add hover effect
+            document.getElementById('chat-refresh-btn').addEventListener('mouseenter', () => {
+                const btn = document.getElementById('chat-refresh-btn');
+                btn.style.opacity = '1';
+                btn.style.color = 'var(--text-main)';
+            });
+            
+            document.getElementById('chat-refresh-btn').addEventListener('mouseleave', () => {
+                const btn = document.getElementById('chat-refresh-btn');
+                btn.style.opacity = '0.6';
+                btn.style.color = 'var(--text-dim)';
+            });
+            
+            // Periodic check for manual changes (every 30 seconds)
+            setInterval(() => {
+                fetchMessages();
+            }, 30000);
+            
             // Add input validation for character limits
             document.getElementById('chat-input').addEventListener('input', function(e) {
                 if (e.target.value.length > 100) {
                     e.target.value = e.target.value.substring(0, 100);
                 }
             });
+            
+            // Channel change validation
+            document.getElementById('chat-room-select').addEventListener('change', function(e) {
+                const selectedChannel = e.target.value;
+                
+                if (selectedChannel === 'the-general') {
+                    // Double-check elite access when switching to The General channel
+                    checkEliteChannelAccess();
+                    
+                    // If elite option is not visible, deny access
+                    if (document.getElementById('elite-channel-option').style.display === 'none') {
+                        e.target.value = 'general 1'; // Revert to default channel
+                        showEliteAccessDenied();
+                        return;
+                    }
+                }
+                
+                // Update current channel and fetch messages
+                currentChannel = selectedChannel;
+                fetchMessages();
+            });
+            
+            // Periodic check for elite channel access (every 2 minutes)
+            setInterval(checkEliteChannelAccess, 2 * 60 * 1000);
             
             document.getElementById('char-name-ui').addEventListener('input', function(e) {
                 if (e.target.value.length > 10) {
@@ -2939,28 +3061,44 @@
                 nameInput.value = user; // Update the input field
             }
             
-            const cb = 'jsonp_send_' + Date.now();
-            
-            console.log('Sending message:', { user, content, channel: currentChannel });
+            // Clear input field immediately for better UX
+            input.value = '';
             
             // Update last message time immediately
             lastMessageTime = now;
+            
+            // Show the message instantly in the UI
+            const tempMessage = {
+                timestamp: new Date().toISOString(),
+                username: user,
+                content: content
+            };
+            chatMessages.push(tempMessage);
+            displayMessages();
+            
+            const cb = 'jsonp_send_' + Date.now();
+            
+            console.log('Sending message:', { user, content, channel: currentChannel });
             
             window[cb] = function(res) {
                 console.log('Send response:', res);
                 delete window[cb];
                 const s = document.getElementById(cb);
                 if (s) s.remove();
-                input.value = '';
                 
                 // Reset sending flag
                 isSending = false;
                 
-                // Use the messages returned from the backend (includes the new message)
+                // Replace the temporary message with the server-confirmed messages
                 if (res.messages && res.messages.length > 0) {
                     chatMessages = res.messages;
                     displayMessages();
                     console.log('Messages updated from server response');
+                    
+                    // Show notification if messages were deleted
+                    if (res.deletedMessages && res.deletedMessages.length > 0) {
+                        showDeletionNotification(res.deletedMessages.length);
+                    }
                 }
             };
 
@@ -3027,6 +3165,70 @@
                 }
             }, 8000); // 8 second timeout
             document.head.appendChild(s);
+        }
+
+        function showEliteAccessDenied() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, rgba(255, 50, 50, 0.9) 0%, rgba(200, 0, 0, 0.8) 100%);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                box-shadow: 0 4px 15px rgba(255, 50, 50, 0.3);
+                z-index: 10000;
+                animation: slideInRight 0.3s ease-out;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            `;
+            notification.innerHTML = `🚫 Elite channel requires Top 20 ranking`;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        function showDeletionNotification(count) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, rgba(255, 100, 100, 0.9) 0%, rgba(255, 50, 50, 0.8) 100%);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                box-shadow: 0 4px 15px rgba(255, 100, 100, 0.3);
+                z-index: 10000;
+                animation: slideInRight 0.3s ease-out;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            `;
+            notification.innerHTML = `🗑️ ${count} old message${count > 1 ? 's' : ''} removed (10 message limit)`;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
         }
 
         function showMessageLimitPopup() {
@@ -3118,80 +3320,35 @@
             // Not needed in the simplified chat system
         }
 
+        function updateChatTimestamps() {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageElements = messagesDiv.querySelectorAll('[data-timestamp]');
+            
+            messageElements.forEach(messageDiv => {
+                const timestamp = messageDiv.getAttribute('data-timestamp');
+                if (timestamp) {
+                    const timeElement = messageDiv.querySelector('div[style*="font-size: 10px"]');
+                    if (timeElement) {
+                        const updatedTime = new Date(parseInt(timestamp)).toLocaleTimeString();
+                        timeElement.textContent = updatedTime;
+                    }
+                }
+            });
+        }
+
         function displayMessages() {
             const messagesDiv = document.getElementById('chat-messages');
             const now = Date.now();
             const oneHourAgo = now - (60 * 60 * 1000); // 1 hour ago
             
-            // Remove expired messages from DOM
-            Array.from(messagesDiv.children).forEach(child => {
-                const timestamp = child.getAttribute('data-timestamp');
-                if (timestamp && parseInt(timestamp) < oneHourAgo) {
-                    child.remove();
-                }
-            });
+            // Clear all existing messages to prevent channel mixing
+            messagesDiv.innerHTML = '';
             
-            // Create map of existing messages to find duplicates
-            const existingMessages = new Map();
-            Array.from(messagesDiv.children).forEach(child => {
-                const username = child.getAttribute('data-username');
-                const content = child.getAttribute('data-content');
-                const timestamp = parseInt(child.getAttribute('data-timestamp') || '0');
-                if (username && content) {
-                    const key = `${username}:${content}`;
-                    if (!existingMessages.has(key) || timestamp > existingMessages.get(key)) {
-                        existingMessages.set(key, { element: child, timestamp: timestamp });
-                    }
-                }
-            });
-            
-            // Remove older duplicates, keep newest
-            existingMessages.forEach((info, key) => {
-                const allDuplicates = Array.from(messagesDiv.children).filter(child => {
-                    const username = child.getAttribute('data-username');
-                    const content = child.getAttribute('data-content');
-                    return username && content && `${username}:${content}` === key;
-                });
-                
-                if (allDuplicates.length > 1) {
-                    // Sort by timestamp (newest first) and remove older ones
-                    allDuplicates.sort((a, b) => {
-                        const timeA = parseInt(a.getAttribute('data-timestamp') || '0');
-                        const timeB = parseInt(b.getAttribute('data-timestamp') || '0');
-                        return timeB - timeA; // Newest first
-                    });
-                    
-                    // Keep the newest, remove the rest
-                    for (let i = 1; i < allDuplicates.length; i++) {
-                        allDuplicates[i].remove();
-                        console.log(`Removed duplicate message: ${key}`);
-                    }
-                }
-            });
-            
-            // Get current message content to detect duplicates
-            const currentMessageContent = new Set();
-            Array.from(messagesDiv.children).forEach(child => {
-                const username = child.getAttribute('data-username');
-                const content = child.getAttribute('data-content');
-                if (username && content) {
-                    currentMessageContent.add(`${username}:${content}`);
-                }
-            });
-            
-            // Don't clear the entire div - just add new messages
-            let newMessagesAdded = false;
-            
+            // Only display messages from current channel that aren't expired
             chatMessages.forEach(message => {
                 // Skip messages older than 1 hour
                 const messageTime = new Date(message.timestamp).getTime();
                 if (messageTime < oneHourAgo) return;
-                
-                // Create unique content key for duplicate detection
-                const contentKey = `${message.username}:${message.content}`;
-                
-                // Skip if this exact message is already displayed
-                if (currentMessageContent.has(contentKey)) return;
                 
                 const messageDiv = document.createElement('div');
                 messageDiv.setAttribute('data-username', message.username);
@@ -3226,12 +3383,10 @@
                 setTimeout(() => {
                     messageDiv.style.opacity = '1';
                 }, 10);
-                
-                newMessagesAdded = true;
             });
             
-            // Only scroll if new messages were added
-            if (newMessagesAdded) {
+            // Scroll to bottom if there are messages
+            if (chatMessages.length > 0) {
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             }
         }
@@ -3240,4 +3395,4 @@
         initChatSystem();
     </script>
 </body>
-</html> 
+</html>
