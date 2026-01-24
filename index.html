@@ -515,40 +515,25 @@
                 max-width: 100% !important;
                 border-right: none !important;
                 border-bottom: 1px solid var(--border-color) !important;
-                max-height: 50vh;
+                height: 100vh !important;
                 overflow-y: auto;
-                display: flex !important;
-                flex-direction: column !important;
+                display: block !important;
             }
             
             #sidebar.mobile-hidden {
                 display: none !important;
             }
             
-            /* Make tab navigation take minimal space */
-            #sidebar .tab-nav {
-                flex-shrink: 0;
-            }
-            
-            /* Make tab content fill remaining space */
-            #sidebar .tab-content {
-                flex-grow: 1 !important;
-                display: flex !important;
-                flex-direction: column !important;
-                min-height: 0 !important;
-            }
-            
-            /* Ensure active tab content is visible and fills space */
-            #sidebar .tab-content.active {
-                display: flex !important;
-                flex-direction: column !important;
-                flex-grow: 1 !important;
-            }
-            
             #main-content {
                 padding: 10px !important;
                 flex-grow: 1;
                 display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                overflow-y: auto;
             }
             
             #main-content.mobile-hidden {
