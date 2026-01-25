@@ -506,8 +506,8 @@
             body {
                 font-size: 14px;
                 flex-direction: column;
-                height: auto;
-                min-height: 100vh;
+                height: 100vh;
+                overflow: hidden;
             }
             
             #sidebar {
@@ -515,7 +515,7 @@
                 max-width: 100% !important;
                 border-right: none !important;
                 border-bottom: 1px solid var(--border-color) !important;
-                height: 100vh !important;
+                max-height: 50vh;
                 overflow-y: auto;
                 display: block !important;
             }
@@ -527,17 +527,20 @@
             #main-content {
                 padding: 10px !important;
                 flex-grow: 1;
-                display: block !important;
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100vh;
+                display: flex !important;
+                flex-direction: column;
+                height: 50vh;
                 overflow-y: auto;
             }
             
             #main-content.mobile-hidden {
                 display: none !important;
+            }
+            
+            /* When sidebar is hidden, main content should take full height */
+            #sidebar.mobile-hidden ~ #main-content,
+            #sidebar.mobile-hidden + #main-content {
+                height: calc(100vh - 60px);
             }
             
             /* Mobile toggle button */
@@ -572,7 +575,10 @@
             
             .cultivation-box {
                 padding: 20px !important;
-                min-height: 300px !important;
+                min-height: auto !important;
+                flex-grow: 1;
+                display: flex !important;
+                flex-direction: column !important;
             }
             
             .stats-top-left {
@@ -683,7 +689,9 @@
             
             .cultivation-box {
                 padding: 15px !important;
-                min-height: 250px !important;
+                flex-grow: 1;
+                display: flex !important;
+                flex-direction: column !important;
             }
             
             .sidebar-header {
@@ -1025,7 +1033,7 @@
         </div>
 
         <div id="tab-chat" class="tab-content">
-            <div class="sidebar-header">Google Sheets Chat</div>
+            <div class="sidebar-header">Chat</div>
             <div class="roll-card">
                 <select id="chat-room-select" style="width: 100%; padding: 5px; background: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; margin-bottom: 10px;">
                     <option value="general 1">General 1</option>
