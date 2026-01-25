@@ -68,11 +68,16 @@
             display: none !important;
         }
 
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
         body {
             background-color: var(--bg-dark);
             color: var(--text-main);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
             display: flex;
             height: 100vh;
             overflow: hidden;
@@ -503,10 +508,18 @@
 
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
+            html, body {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                min-height: 100vh;
+            }
+            
             body {
                 font-size: 14px;
                 flex-direction: column;
                 height: 100vh;
+                min-height: 100vh;
                 overflow: hidden;
             }
             
@@ -663,19 +676,6 @@
                 font-size: 9px !important;
             }
             
-            #chat-messages strong {
-                font-size: 11px !important;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            body {
-                font-size: 12px;
-            }
-            
-            #sidebar {
-                max-height: 60vh;
-            }
             
             #admin-panel {
                 display: none !important;
